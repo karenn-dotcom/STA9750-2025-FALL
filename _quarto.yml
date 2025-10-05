@@ -13,8 +13,12 @@ website:
     
 format:
   html:
-    theme: morph
-    toc: false
+    theme: journal
+    toc: true
+    toc-title: "On this page"
+    toc-location: right
+    code-fold: true
+    code-summary: "Code"
 
 editor:
   mode: source
