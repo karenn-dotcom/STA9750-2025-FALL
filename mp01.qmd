@@ -395,3 +395,4 @@ betty_hours<- ne__shows$total_hours[2]
 
 Over the last decade, we have seen an influx of foreign consumption worldwide. The table above demonstrates the TV shows' amount of weeks spent in the Top 10. Aside from genre, there is also a variety of language in just these five shows, like Korean, Spanish, and Portuguese. *Squid Game* did extremly well, but *`{r} betty_show`* did exceptional as well, with *`{r} betty_wks`* weeks in the Top 10 and *`{r} format(round(betty_hours, 0), big.mark = ",")`* hours in viewership. These Korean dramas and Spanish thrillers continue breaking barriers and dominating global charts. 
 
+
