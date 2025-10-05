@@ -1,0 +1,24 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "STA 9750 Submission Material"
+  description:
+    Course Projects for STA 9750 at Baruch College
+  site-url: "https://karenn-dotcom.github.io/STA9750-2025-FALL/mp01.qmd"
+  navbar:
+    background: primary
+    search: false
+    
+format:
+  html:
+    theme: journal
+    toc: true
+    toc-title: "On this page"
+    toc-location: right
+    code-fold: true
+    code-summary: "Code"
+
+editor:
+  mode: source
