@@ -1,7 +1,16 @@
 ---
-title: "Mini Project #01: Netflix Public Top 10"
+title: "Mini-Project #01: Gourmet Cheeseburgers Across the Globe"
+subtitle: "Exploring the Most Popular Programming on Netflix"
+author: Karen Cruz
+date: "October 3, 2025"
 ---
+![](https://1000logos.net/wp-content/uploads/2017/05/Netflix-Logo-2048x1152.png)
 
+# Data Acquistion
+
+```{r}
+#| echo: true
+#| eval: true
 if(!dir.exists(file.path("data", "mp01"))){
     dir.create(file.path("data", "mp01"), showWarnings=FALSE, recursive=TRUE)
 }
@@ -19,3 +28,370 @@ if(!file.exists(COUNTRY_TOP_10_FILENAME)){
     download.file("https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv", 
                   destfile=COUNTRY_TOP_10_FILENAME)
 }
+
+```
+
+--- 
+
+# Data Import and Preparation
+
+```{r}
+#| code-fold: true
+#| code-summary: Show data code
+#| output: true
+if(!require("tidyverse")) install.packages("tidyverse")
+library(readr)
+library(dplyr)
+
+GLOBAL_TOP_10 <- read_tsv(GLOBAL_TOP_10_FILENAME)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Cleaning
+#| output: true
+GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
+    mutate(season_title = if_else(season_title == "N/A", NA_character_, season_title))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Data Import
+#| output: true
+COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = c("N/A", "NA"))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Show verification
+#| output: true
+str(GLOBAL_TOP_10)
+str(COUNTRY_TOP_10)
+```
+---
+
+# Initial Data Exploration
+
+```{r}
+#| code-fold: true
+#| code-summary: Show DT package
+#| output: false
+library(DT)
+GLOBAL_TOP_10 |> 
+    head(n=20) |>
+    datatable(options=list(searching=FALSE, info=FALSE))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Proper Format
+#| output: false
+library(stringr)
+format_titles <- function(df){
+    colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+    df
+}
+
+GLOBAL_TOP_10 |> 
+    format_titles() |>
+    head(n=20) |>
+    datatable(options=list(searching=FALSE, info=FALSE)) |>
+    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Drop Season Title
+#| output: false
+GLOBAL_TOP_10 |> 
+    select(-season_title) |>
+    format_titles() |>
+    head(n=20) |>
+    datatable(options=list(searching=FALSE, info=FALSE)) |>
+    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Show Runtime in Minutes
+#| output: true
+GLOBAL_TOP_10 |> 
+    mutate(`runtime_(minutes)` = round(60 * runtime)) |>
+    select(-season_title, 
+           -runtime) |>
+    format_titles() |>
+    head(n=20) |>
+    datatable(options=list(searching=FALSE, info=FALSE)) |>
+    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
+```
+
+## Exploratory Analysis Data
+
+**1) How many different countries does Netflix operate in? (You can use the viewing history as a proxy for countries in which Netflix operates.)**
+
+```{r}
+Countries_total <- COUNTRY_TOP_10 |> 
+  distinct(country_name) |> 
+  count()
+```
+
+  Netflix operates in *`{r} Countries_total`* countries. 
+
+**2) Which non-English-language film has spent the most cumulative weeks in the global top 10? How many weeks did it spend?**
+
+```{r}
+ne_mcmtv_wks <- GLOBAL_TOP_10 |>
+  filter(category == "Films (Non-English)") |>
+  slice_max(cumulative_weeks_in_top_10, n=1)
+
+non_english_title <- ne_mcmtv_wks$show_title
+non_english_weeks <- ne_mcmtv_wks$cumulative_weeks_in_top_10
+```
+
+The non-English movie that has spent the most cumulative weeks in the global Top 10 is *`{r} non_english_title`* for a total of *`{r} non_english_weeks`* weeks. 
+
+**3) What is the longest film (English or non-English) to have ever appeared in the Netflix global Top 10? How long is it in minutes?**
+
+```{r}
+longest_film <- GLOBAL_TOP_10 |> 
+  filter(str_detect(category, "Films")) |>
+  filter(!is.na(runtime)) |>
+  mutate(runtime_minutes = round(60 * runtime)) |>
+  arrange(desc(runtime_minutes)) |>
+  slice(1)
+
+longest_film_name <- longest_film$show_title
+longest_film_mins <- longest_film$runtime_minutes
+```
+
+The longest film to ever appear the longest in global Top 10 is *`{r} longest_film_name`* for *`{r} longest_film_mins`* minutes. 
+
+**4) For each of the four categories, what program has the most total hours of global viewership?**
+
+```{r}
+#| code-fold: true
+#| code-summary: Show Code
+#| output: false
+most_hours_prgms <- GLOBAL_TOP_10 |>
+  group_by(category, show_title) |> 
+  summarise(total_hours = sum(weekly_hours_viewed)) |>
+  group_by(category) |> 
+  slice_max(total_hours, n=1) |>
+  ungroup() |>
+  arrange(desc(total_hours))
+```
+
+```{r}
+most_hours_prgms |>
+  mutate(total_hours = scales::comma(total_hours)) |>
+  format_titles() |>
+  datatable(
+    most_hours_prgms, 
+    options = list(searching = FALSE, info = FALSE),
+    caption = "Top Programs' Total Hours by Category")
+```
+
+**5) Which TV show had the longest run in a country’s Top 10? How long was this run and in what country did it occur?**
+
+```{r}
+longest_cn_run <- COUNTRY_TOP_10 |>
+  filter(str_detect(category, "TV")) |>
+  group_by(country_name, show_title) |>
+  summarise(mx_cmwks = max(cumulative_weeks_in_top_10, na.rm = TRUE), .groups = "drop") |>
+  arrange(desc(mx_cmwks)) |>
+  slice(1)
+
+longest_cn_run_title <- longest_cn_run$show_title
+longest_cn_run_weeks <- longest_cn_run$mx_cmwks
+longest_cn_run_name <- longest_cn_run$country_name
+```
+*`{r} longest_cn_run_title`* had the longest run in a *`{r} longest_cn_run_name`'s* Top 10 for a total of *`{r} longest_cn_run_weeks`* weeks. 
+
+**6) Netflix provides over 200 weeks of service history for all but one country in our data set. Which country is this and when did Netflix cease operations in that country?**
+
+```{r}
+na_200 <- COUNTRY_TOP_10 |>
+  group_by(country_name) |>
+  summarise(total_least_weeks = n_distinct(week), last_wk = max(week, na.rm = TRUE), .groups = "drop") |>
+  filter(total_least_weeks < 200) |>
+  arrange(total_least_weeks)
+
+least_weeks_country <- na_200$country_name
+least_weeks_date <- na_200$last_wk
+```
+  
+On *`{r} least_weeks_date`*, Netflix ceased their operations in *`{r} least_weeks_country`*. 
+
+**7) What is the total viewership of the TV show Squid Game? Note that there are three seasons total and we are looking for the total number of hours watched across all seasons.**
+
+```{r}
+total_viewership_sg <- GLOBAL_TOP_10 |>
+  filter(str_detect(show_title, "Squid Game")) |>
+  summarise(total_hours_viewed = sum(weekly_hours_viewed, na.rm = TRUE)) |>
+  pull(total_hours_viewed)
+total_viewership_squid_game <- scales::comma(total_viewership_sg)
+```
+ The total viewership of the TV show Squid Game is *`{r} total_viewership_squid_game`* hours, taking into account all three seasons. 
+
+**8) The movie Red Notice has a runtime of 1 hour and 58 minutes. Approximately how many views did it receive in 2021? Note that Netflix does not provide the weekly_views values that far back in the past, but you can compute it yourself using the total view time and the runtime.**
+
+```{r}
+library(lubridate)
+Red_Notice_21 <- GLOBAL_TOP_10 |>
+  filter(show_title == "Red Notice", year(week) == 2021) |>
+  summarise(total_hours = sum(weekly_hours_viewed, na.rm = TRUE)) |>
+  mutate(approx_views = total_hours / (1 + 58/60))
+```
+
+The total approximate views Red Notice received in 2021 is *`{r} format(round(Red_Notice_21$approx_views, 0), big.mark = ",")`* views. 
+
+**9) How many Films reached Number 1 in the US but did not originally debut there? That is, find films that first appeared on the Top 10 chart at, e.g., Number 4 but then became more popular and eventually hit Number 1? What is the most recent film to pull this off?**
+
+```{r}
+top_US_films <- COUNTRY_TOP_10 |>
+  filter(country_name == "United States", str_detect(category, "Films")) |>
+  arrange(week) |>
+  group_by(show_title) |>
+  summarise(
+    debut_week = min(week, na.rm = TRUE),
+    debut_rank = first(weekly_rank),
+    top_rank = min(weekly_rank, na.rm = TRUE),
+    latest_week = max(week)
+    ) |>
+  filter(debut_rank > 1, top_rank == 1)
+
+lastest_film <- top_US_films |> 
+  arrange(desc(latest_week)) |>
+  slice(1) 
+
+top_US_films |>
+  format_titles() |>
+  datatable(
+    options = list(searching= FALSE, info= FALSE), 
+    caption = "Films That Climed to Number 1"
+  )
+
+total_top_films <- nrow(top_US_films)
+recent_top_1 <- lastest_film$show_title
+```
+
+There is a total of *`{r} total_top_films`* films that did not originally debut at number 1, but eventually ranked at the top. The most recent film to achieve this was *`{r} recent_top_1`*. 
+
+**10) Which TV show/season hit the top 10 in the most countries in its debut week? In how many countries did it chart?**
+
+```{r}
+top_show_debut <- COUNTRY_TOP_10 |>
+  filter(category == "TV") |>
+  group_by(show_title) |>
+  filter(week == min(week)) |> 
+  summarise(countries_amount = n_distinct(country_name), .groups = "drop") |>
+  arrange(desc(countries_amount)) |> 
+  slice(1)
+
+show_name <- top_show_debut$show_title
+countries_charted <- top_show_debut$countries_amount
+```
+
+*`{r} show_name`* hit the Top 10 in most countries in its debut week, with a total of *`{r} countries_charted`* countries charted.
+
+---
+
+# Press Releases
+
+## The Rise of the Upside Down
+### Press Release 1: Upcoming Season of *Stranger Things*
+
+![Stranger Things Season 5](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgxEYrVLAoXeYgcWTQTB0RF-t5GGa5xnrC9A&s)
+
+```{r}
+library(lubridate)
+st_views <- GLOBAL_TOP_10 |>
+  filter(show_title == "Stranger Things") |>
+  summarise(total_hours = sum(weekly_hours_viewed, na.rm = TRUE))
+
+st_data <- GLOBAL_TOP_10 %>%
+  filter(str_detect(show_title, regex("Stranger Things", ignore_case = TRUE))) %>%
+  summarise(
+    total_weeks = max(cumulative_weeks_in_top_10, na.rm = TRUE)
+  )
+
+compare_shows <- GLOBAL_TOP_10 |>
+  select(show_title, weekly_hours_viewed) |> 
+  filter(show_title == "Stranger Things" | 
+           show_title == "My Life With the Walter Boys" | 
+           show_title =="Love Is Blind: UK" | 
+           show_title == "You") |> 
+  group_by(show_title) |> 
+  summarise(total_weekly_hours = sum(weekly_hours_viewed))
+
+walter_boys <- compare_shows$show_title[2]
+you_show <- compare_shows$show_title[4]
+walter_views <- compare_shows$total_weekly_hours[2]
+you_views <- compare_shows$total_weekly_hours[4]
+```
+
+At last, *Stranger Things* is coming to an end, releasing its final season on November 26, 2025. Not only has it been a huge hit across the United States, but across other nations as well, garnering a total viewership of *`{r} format(round(st_views$total_hours, 0), big.mark = ",")`* hours. Compared to other popular shows such as *`{r} you_show`* and *`{r} walter_boys`*, they fell behind with *`{r} format(round(you_views, 0), big.mark = ",")`* and *`{r} format(round(walter_views, 0), big.mark = ",")`* hours, respectively. These are astounding numbers, as we saw it was one of the top viewed shows and also ranked highly for several weeks. It has maintained itself `{r} st_data$total_weeks` weeks in the Top 10. 
+
+As a *Stranger Things* watcher myself, I cannot wait to see if Hawkins will be consumed by the underworld, or if it will finally be closed for good. 
+
+## Breaking Into India: Netflix's Ambitions in the Indian Market
+### Press Release 2: Commercial Success in India
+
+```{r}
+top_hindi_films <- GLOBAL_TOP_10 |> select(show_title, weekly_hours_viewed) |> 
+  filter(str_detect(show_title, "Hindi")) |> 
+  group_by(show_title) |> 
+  summarise(total_wkly_hrs = sum(weekly_hours_viewed)) |>
+  slice_max(total_wkly_hrs, n = 5)
+  
+hindi_india <- COUNTRY_TOP_10 %>%
+  filter(country_name == "India") %>%
+  filter(str_detect(show_title, regex("Hindi", ignore_case = TRUE)) |
+         str_detect(season_title, regex("Hindi", ignore_case = TRUE))) %>%
+  group_by(show_title) %>%
+  summarise(
+    weeks_top10 = max(cumulative_weeks_in_top_10, na.rm = TRUE),
+    peak_rank   = min(weekly_rank, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(peak_rank, desc(weeks_top10))
+
+rrr <- top_hindi_films$show_title[1]
+top_hindi_2 <- top_hindi_films$show_title[2]
+rrr_hours <-top_hindi_films$total_wkly_hrs[1]
+top2_hours <- top_hindi_films$total_wkly_hrs[2]
+rrr_rank_weeks <- hindi_india$weeks_top10[1]
+```
+Being the most populated country in the world, India is an enticing market many companies are ready to enter and invest in, Netlfix being one of them. Currently *`{r} rrr`* and *`{r} top_hindi_2`* sit at the top with *`{r} format(round(rrr_hours, 0), big.mark = ",")`* and *`{r} format(round(top2_hours, 0), big.mark = ",")`* hours, respectively. Not to mention *`{r} rrr`* has spent *`{r} rrr_rank_weeks`* weeks ranked 1. A total of 11 films have ranked that high, attracting Netflix even more. 
+
+
+## Global Hits: Non-English TV Shows Taking Over Worldwide
+### Press Release 3: Open Topic
+
+```{r}
+ne__shows <- GLOBAL_TOP_10 |>
+  filter(category == "TV (Non-English)") |>
+  group_by(show_title) |>
+  summarise(
+    total_weeks = max(cumulative_weeks_in_top_10, na.rm = TRUE),
+    total_hours = sum(weekly_hours_viewed, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(total_weeks))
+
+ne__shows |>
+  mutate(total_hours = scales::comma(total_hours)) |>
+  head(10) |>
+  format_titles() |>
+  datatable(
+    options = list(searching= FALSE, info= FALSE), 
+    caption = "Top Non-English Shows"
+  )
+
+betty_show <- ne__shows$show_title[2]
+betty_wks <- ne__shows$total_weeks[2]
+betty_hours<- ne__shows$total_hours[2]
+```
+
+Over the last decade, we have seen an influx of foreign consumption worldwide. The table above demonstrates the TV shows' amount of weeks spent in the Top 10. Aside from genre, there is also a variety of language in just these five shows, like Korean, Spanish, and Portuguese. *Squid Game* did extremly well, but *`{r} betty_show`* did exceptional as well, with *`{r} betty_wks`* weeks in the Top 10 and *`{r} format(round(betty_hours, 0), big.mark = ",")`* hours in viewership. These Korean dramas and Spanish thrillers continue breaking barriers and dominating global charts. 
+
