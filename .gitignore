@@ -1,0 +1,25 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+This file essentially gives git instructions not to save any of the various types of output of code (PDFs, Excel files)
+**/.quarto/*
+.Rproj.user
+data/**
+**/*_cache/*
+*_files/*
+**/*_freeze/*
+**/*tsv*
+**/*csv*
+**/*xlsx*
+**/*zip
+**/*pdf
+**/*json
+**/*rds
+.DS_Store
+.Rhistory
+/.quarto/*
+**/gganim*
+/.quarto/
+**/*.quarto_ipynb

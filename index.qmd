@@ -1,0 +1,33 @@
+---
+title: "My First Website"
+---
+
+My name is **Karen Cruz** and I am currently 22 years old. 
+I am currently on my second semester doing the Master's in Statistics program at CUNY Baruch.
+
+There's a multitude of things I enjoy doing during my free time such as trying new foods and restaurants, playing sports, traveling, and the list goes on. Fortunately, I reside in NYC, where you can try gastronomy from all over the world at every corner of the city. As for traveling, one of my favorite places I have traveled to was Kyoto, Japan. It was such a surreal experience I think about everyday. This is my [LinkenIn](https://www.linkedin.com/in/karen-cruz-), if anyone wants to follow me!
+
+![**This is one of my favorite places in the world!**](https://media.tacdn.com/media/attractions-splice-spp-360x240/07/7e/e6/f8.jpg)
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+if(!require("leaflet")){
+    options(repos=c(CRAN="https://cloud.r-project.org"))
+    install.packages("leaflet")
+    stopifnot(require("leaflet"))
+}
+
+mamastoo_longitude <- -74.004049
+mamastoo_latitude  <- +40.733258
+leaflet() |>
+  addTiles() |>
+  setView(mamastoo_longitude, mamastoo_latitude, zoom=17) |>
+  addPopups(mamastoo_longitude, mamastoo_latitude, 
+            "Mama's Too! One of my favorite pizzerias!")
+```
+
+
+
+## Nice to meet everybody! 
