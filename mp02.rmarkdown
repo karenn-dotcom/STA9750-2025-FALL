@@ -324,7 +324,7 @@ top_city <- new_housing_units1019$total_permits_given[1]
 top_city_name <- new_housing_units1019$NAME[1]
 ```
 
-The largest number of new housing units in the decade from 2010 to 2019 was in ***`{r} top_city_name`*** with a total of ***`{r} format(round(top_city, 0), big.mark = ",")`*** permits issued.
+The largest number of new housing units in the decade from 2010 to 2019 was in ***`r .QuartoInlineRender(top_city_name)`*** with a total of ***`r .QuartoInlineRender(format(round(top_city, 0), big.mark = ","))`*** permits issued.
 
 **2. In what year did Albuquerque, NM (CBSA Number 10740) permit the most new housing units?**
 
@@ -351,7 +351,7 @@ abq_newest_top_year <- albuquerque_new_permits$year[1]
 abq_new_total_permits <- albuquerque_new_permits$ABQ_total_permits[1]
 ```
 
-In Albuquerque, NM, ***`{r} abq_newest_top_year`*** was the year in which new housing units were permitted the most, with a total of ***`{r} format(round(abq_new_total_permits, 0), big.mark = ",")`*** permits issued.
+In Albuquerque, NM, ***`r .QuartoInlineRender(abq_newest_top_year)`*** was the year in which new housing units were permitted the most, with a total of ***`r .QuartoInlineRender(format(round(abq_new_total_permits, 0), big.mark = ","))`*** permits issued.
 
 **3. Which state (not CBSA) had the highest average individual income in 2015?**
 
@@ -397,7 +397,7 @@ datatable(
 )
 ```
 
-The state with the highest average *individual* income is ***`{r} top_states$State[1]`***, with an average of ***`{r} top_states$'Average Individual Income'[1]`***.
+The state with the highest average *individual* income is ***`r .QuartoInlineRender(top_states$State[1])`***, with an average of ***`r .QuartoInlineRender(top_states$'Average Individual Income'[1])`***.
 
 **4. Data scientists and business analysts are recorded under NAICS code 5182. What is the last year in which the NYC CBSA had the most data scientists in the country? In recent, the San Francisco CBSA has had the most data scientists.**
 
@@ -470,7 +470,7 @@ peak_year <- wages_nyc$Year[1]
 peak_fraction <- wages_nyc$`Finance Fraction`[1]
 ```
 
-Approximately ***`{r} peak_fraction`*** of total wages was earned by people employed in the finance and insurance industries, and they peaked in ***`{r} peak_year`***.
+Approximately ***`r .QuartoInlineRender(peak_fraction)`*** of total wages was earned by people employed in the finance and insurance industries, and they peaked in ***`r .QuartoInlineRender(peak_year)`***.
 
 #### [Task 3: Initial Visualizations]{.underline}
 
@@ -860,9 +860,9 @@ Through our findings, we were able to find correlations between housing, wages, 
 
 ##### Proposed Congressional Sponsors:
 
-There are multiple YIMBY success candidates that we found across our research, as we can see in the previous graph highlighting rising in housing growth and decrease in rent burden. The primary sponsor we will be choosing is *`{r} plot_data$NAME[117]`*, which had the least burden changes, and actually decreasing it, with a negative percentage of *`{r} plot_data$rent_burden_change[117]`%*.
+There are multiple YIMBY success candidates that we found across our research, as we can see in the previous graph highlighting rising in housing growth and decrease in rent burden. The primary sponsor we will be choosing is *`r .QuartoInlineRender(plot_data$NAME[117])`*, which had the least burden changes, and actually decreasing it, with a negative percentage of *`r .QuartoInlineRender(plot_data$rent_burden_change[117])`%*.
 
-Our cosponsor would preferably be a city which we can work from scratch. There are cities whose housing development does not seem to increase, while the rent keeps increasing, leaving locals with a heavy burden. In *`{r} plot_data$NAME[273]`*, the rent burden keeps increasing with a *`{r} plot_data$rent_burden_change[273]`%* while population appears to be decreasing by *`{r} plot_data$population_change[273]`* in 5 years.
+Our cosponsor would preferably be a city which we can work from scratch. There are cities whose housing development does not seem to increase, while the rent keeps increasing, leaving locals with a heavy burden. In *`r .QuartoInlineRender(plot_data$NAME[273])`*, the rent burden keeps increasing with a *`r .QuartoInlineRender(plot_data$rent_burden_change[273])`%* while population appears to be decreasing by *`r .QuartoInlineRender(plot_data$population_change[273])`* in 5 years.
 
 ##### Recommendation
 
@@ -871,3 +871,4 @@ Our polices should be implemented into either city as they will make one city co
 -   The metrics we use are based on *Rent Burden Index*, a *Housing Growth Index*, and *Household Trends*, to name a few. These allow us to see any changes from 2009-2023.
 
 ##### Allow us to help you live and thrive!
+
