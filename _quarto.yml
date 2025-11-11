@@ -13,7 +13,7 @@ website:
     
 format:
   html:
-    theme: minty
+    theme: sandstone
     toc: true
     toc-title: "On this page"
     toc-location: right
