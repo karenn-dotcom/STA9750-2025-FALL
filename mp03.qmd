@@ -1,0 +1,561 @@
+---
+title: "Visualizing and Maintaining the Green Canopy of NYC"
+subtitle: "Mini Project #03"
+author: "Karen Cruz"
+date: "November 10,2025"
+---
+
+![The Incredible Environmental Benefits of NYC Trees \| Craig. D.J. (2023)](https://miro.medium.com/v2/1*E3YW9GDeGhxBELzrmtYp9A.png)
+
+# Introduction
+
+Greenery is a city quality that will always be cherished among urban cities, especially in New York City, where we are surrounded by a jungle of concrete. Not only is it visually pleasing, but it is also home to many species, provides better air quality, and brings together the community. By obtaining data from [NYC TreeMap](https://tree-map.nycgovparks.org/tree-map) dataset, we are able to get insight on any major issues relating to this urban jungle.
+
+------------------------------------------------------------------------
+
+# Data Acquisition
+
+### NYC City Council Districts
+
+In order to obtain information about trees in each council, we must download data about NYC's 51 council districts and its boundaries.
+
+::: {.callout-note title="Task 1: Download NYC Council District Boundaries"}
+:::
+
+```{r}
+#| code-summary: Code to download data
+#| label: Data Download
+#| output: false
+library(sf)
+library(fs)
+library(tidyverse)
+library(httr2)
+library(glue)
+library(dplyr)
+
+if(!dir.exists(file.path("data", "mp03"))){
+    dir.create(file.path("data", "mp03"), showWarnings=FALSE, recursive=TRUE)
+}
+
+NYC_CC_2025 <- function(){
+  mp03 <- file.path("data", "mp03")
+  
+  fname<- "nycc_25c.zip"
+  zip_path <- file.path(mp03, fname)
+  
+  city_url <- glue("https://s-media.nyc.gov/agencies/dcp/assets/files/zip/data-tools/bytes/city-council/nycc_25c.zip")
+  
+  if(!file.exists(zip_path)){
+    download.file(city_url, destfile = zip_path, mode = "wb")
+    message(glue("Downloaded {fname}"))
+  } else {
+    message(glue("{fname} already exists, skipping download."))
+  }
+  
+  shp_file <- dir_ls(mp03, recurse = TRUE, glob = "*.shp")
+  if(length(shp_file) == 0) {
+    message("no shapefile found - unzipping archive...")
+    unzip(zip_path, exdir = mp03)
+    shp_file <- dir_ls(mp03, recurse = TRUE, glob = "*.shp")
+  } else {
+    message("Shapefile already extracted - skipping unzip.")
+  }
+  
+  message("Reading shapefile and transforming to WGS 84...")
+  NYC_CC_file <- st_read(shp_file[1], quiet = TRUE)
+  NYC_CC_file <- st_transform(NYC_CC_file, crs = "WGS84")
+  
+  NYC_CC_file <- NYC_CC_file |>
+    mutate(geometry = st_simplify(geometry, dTolerance = 10))
+  
+  return(NYC_CC_file)
+}
+
+nyc_council <- NYC_CC_2025()
+```
+
+### NYC Tree Points
+
+Then, we need to dowload NYC Tree Points to locate the trees geographically and other crucial information.
+
+::: {.callout-note title="Task 2: Download Tree Points"}
+:::
+
+```{r}
+#| code-summary: Code to download data
+#| message: false
+#| output: false
+#| warning: false
+
+All_Trees_GeoJSON <- function(
+  endpoint = "https://data.cityofnewyork.us/resource/hn5i-inap.geojson",
+  limit = 10000,         
+  save_dir = "data/mp03",
+  max_pages = 100        
+) {
+  if (!dir.exists(save_dir)) dir.create(save_dir, recursive = TRUE)
+  
+  all_batches <- list()
+  offset <- 0
+  page <- 1
+  
+  cat("Downloading (or reading cached) NYC Tree GeoJSON batches...\n")
+  pb <- txtProgressBar(min = 0, max = max_pages, style = 3)
+  
+  repeat {
+    file_path <- file.path(save_dir, paste0("trees_batch_", offset, ".geojson"))
+    
+    if (!file.exists(file_path)) {
+      cat("\n Downloading batch ", page, " (offset=", offset, ")...\n", sep = "")
+      req <- request(endpoint) %>%
+        req_url_query(`$limit` = limit, `$offset` = offset)
+      req_perform(req, path = file_path)
+      Sys.sleep(1)
+    } else {
+      cat("\n✓ Using cached batch ", page, " (offset=", offset, ")\n", sep = "")
+    }
+    
+    batch_data <- tryCatch(
+      st_read(file_path, quiet = TRUE),
+      error = function(e) {
+        cat("Error reading batch at offset", offset, "\n")
+        return(NULL)
+      }
+    )
+    
+    if (!is.null(batch_data) && "planteddate" %in% names(batch_data)) {
+      batch_data$planteddate <- as.character(batch_data$planteddate)
+    }
+
+    if (is.null(batch_data) || nrow(batch_data) == 0) break
+   
+    all_batches[[page]] <- batch_data
+    setTxtProgressBar(pb, page)
+    if (nrow(batch_data) < limit) {
+      cat("\n✓ Last batch received (", nrow(batch_data), " rows)\n", sep = "")
+      break
+    }
+    offset <- offset + limit
+    page <- page + 1
+    if (page > max_pages) {
+      warning("\nReached max_pages limit; stopping to prevent infinite loop.")
+      break
+    }
+  }
+  
+  close(pb)
+  cat("\n Combining all downloaded batches...\n")
+  full_data <- do.call(bind_rows, all_batches)
+  trees_sf <- st_transform(full_data, crs = 4326)
+  
+  cat("Finished! Total trees: ", nrow(trees_sf), "\n", sep = "")
+  return(trees_sf)
+}
+
+tree_all <- All_Trees_GeoJSON(
+  endpoint = "https://data.cityofnewyork.us/resource/hn5i-inap.geojson",
+  limit = 10000,
+  save_dir = "data/mp03"
+)
+```
+
+------------------------------------------------------------------------
+
+# Data Integration
+
+Now that we have downloaded our datasets, we will be analyzing the data to answer several questions to help us understand the data se have obtained.
+
+### Mapping NYC Trees
+
+::: {.callout-note title="Task 3: Plot All Tree Points"}
+:::
+
+The graph below reveals all trees within NYC, with a gradient noting the number of trees in different councils.
+
+```{r}
+library(ggplot2)
+
+tree_with_district <- st_join(tree_all, nyc_council, join = st_within, left = FALSE)
+
+tree_count_by_district <- tree_with_district |>
+  group_by(CounDist) |> 
+  summarise(num_trees = n()) |>
+  arrange(desc(num_trees))
+
+tree_count_by_district_df <- tree_count_by_district |> 
+  st_drop_geometry()
+
+nyc_council_choro <- nyc_council |>
+  left_join(tree_count_by_district_df, by = "CounDist")
+
+ggplot(nyc_council_choro) +
+  geom_sf(aes(fill = num_trees), color = "white", size = 0.3) +
+  scale_fill_gradient(low = "#e5f5e0",high = "#006d2c", trans = "sqrt") +
+  labs(
+    title = "Tree Counts by NYC City Council District",
+    subtitle = "NYC OpenData Tree Inventory",
+    fill = "Number of Trees",
+    caption = "Data: NYC OpenData"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid = element_blank())
+
+```
+
+This interactive tree map allows us to the exact location of trees while being able to directly choose which district we want to explore.
+
+```{r}
+library(leaflet)
+
+tree_sample <- tree_all |> slice_sample(n = 2000)
+
+leaflet(tree_sample) |>
+  addTiles() |>
+  addCircleMarkers(
+    radius = 2,
+    color = "green",
+    stroke = FALSE,
+    fillOpacity = 0.5,
+    clusterOptions = markerClusterOptions() 
+  ) |>
+  setView(lng = -73.98, lat = 40.73, zoom = 11)
+```
+
+### District-Level Analyses of Trees
+
+::: {.callout-note title="Task 4: District-Level Analysis of Tree Coverage"}
+:::
+
+**1. Which council district has the most trees?**
+
+```{r}
+most_trees <- tree_count_by_district[1,]
+most_trees_dis <- most_trees$CounDist
+most_trees_amount <- most_trees$num_trees
+```
+
+Council district ***`{r} most_trees_dis`*** has the most trees across all districts, with total of ***`{r} format(round(most_trees_amount, 0), big.mark = ",")`*** trees.
+
+**2. Which council district has the highest density of trees? The Shape_Area column from the district shape file will be helpful here.**
+
+```{r}
+tree_density <- tree_all |>
+  st_join(nyc_council, join = st_intersects) |>
+  st_drop_geometry() |>
+  count(CounDist, name = "n_trees") |>
+  left_join(
+    nyc_council |>
+      mutate(Area_calc = as.numeric(st_area(geometry))) |>
+      st_drop_geometry() |>
+      select(CounDist, Area_calc),
+    by = "CounDist"
+  ) |>
+  mutate(tree_density = n_trees / Area_calc) |>
+  arrange(desc(tree_density))
+
+tree_density |> slice(1)
+
+highest_density_council <- tree_density |> slice(1)
+highest_den_dis <- highest_density_council$CounDist
+high_den_per <- highest_density_council$tree_density
+```
+
+The council with the highest denisty of trees was district ***`{r} highest_den_dis`***, with a density percentage of ***`{r} paste0(format(round(high_den_per * 100, 1), big.mark = ","), "%")`***.
+
+**3. Which district has highest fraction of dead trees out of all trees?**
+
+```{r}
+dead_fraction <- tree_with_district |>
+  st_drop_geometry() |>
+  group_by(CounDist) |>
+  summarise(
+    total_trees = n(),
+    dead_trees = sum(tpcondition == "Dead", na.rm = TRUE),
+    dead_fraction = dead_trees / total_trees
+  ) |>
+  arrange(desc(dead_fraction))
+
+highest_dead_fraction <- dead_fraction |> slice(1)
+dead_district <- highest_dead_fraction$CounDist
+dead_per <- highest_dead_fraction$dead_fraction
+```
+
+Through our findings, it is clear that district ***`{r} dead_district`*** has the highest fraction of dead trees out of *all* trees, with a percentage of ***`{r} paste0(format(round(dead_per * 100, 1), big.mark = ","), "%")`***.
+
+**4. What is the most common tree species in Manhattan?**
+
+```{r}
+library(dplyr)
+
+tree_with_borough <- tree_with_district |>
+  mutate(
+    borough = case_when(
+      CounDist >= 1 & CounDist <= 10 ~ "Manhattan", 
+      CounDist >= 11 & CounDist <= 18 ~ "Bronx",
+      CounDist >= 19 & CounDist <= 32 ~ "Queens", 
+      CounDist >= 33 & CounDist <= 48 ~ "Brooklyn", 
+      CounDist >= 49 & CounDist <= 51 ~ "Staten Island", 
+      TRUE ~ NA_character_
+    )
+  )
+
+most_popular_mnhtn_species <- tree_with_borough |>
+  st_drop_geometry() |>
+  filter(borough == "Manhattan") |>
+  count(genusspecies, sort = TRUE) |>
+  slice(1)
+
+manhattan_tree_name <- most_popular_mnhtn_species$genusspecies
+manhattan_num <- most_popular_mnhtn_species$n
+```
+
+Manhattan has a great variety of tree species, however, the most common was ***`{r} manhattan_tree_name`***, with ***`{r} format(round(manhattan_num, 0), big.mark = ",")`*** trees in total.
+
+**5. What is the species of the tree closest to Baruch's campus?**
+
+```{r}
+new_st_point <- function(lat, lon, ...){
+    st_sfc(point = st_point(c(lon, lat))) |>
+      st_set_crs("WGS84")
+}
+
+Baruch_point <- new_st_point(lat = 40.74045, lon = -73.98322)
+
+closest_tree_baruch <- tree_all |>
+  mutate(distance = st_distance(geometry, Baruch_point)) |>
+  arrange(distance) |>
+  slice(1)
+
+
+closest_coords <- st_coordinates(closest_tree_baruch$geometry)
+
+baruch_longitude <- -73.98322
+baruch_latitude  <- 40.74045
+
+leaflet() |>
+  addTiles() |>
+  setView(baruch_longitude, baruch_latitude, zoom = 17) |>
+  
+  addMarkers(baruch_longitude, baruch_latitude, popup = "Baruch College") |>
+  
+  addMarkers(closest_coords[1], closest_coords[2],
+             popup = paste0("Closest tree: ", closest_tree_baruch$genusspecies)) 
+
+baruch_species <- closest_tree_baruch$genusspecies
+```
+
+The closest tree near Baruch College is a ***`{r} baruch_species`***.
+
+------------------------------------------------------------------------
+
+# Government Project Design
+
+::: {.callout-note title="Task 5: NYC Parks Proposal"}
+:::
+
+### Proposal to NYC Park's Department
+
+As a NYC council member, I would like to request the NYC Park Department additional funding for our next project dealing with the improvement of trees in critical condition. These trees are extremely close to the end of their life, therefore we hope to identify their underlying issue to restore them to their  best condition.
+
+Rather than focusing solely on the district with the highest amount of trees in critical condition, working on trees based on critical fraction is our goal. We will act with urgency to tackle the district with the highest percentage and then share information about our approach to other districts with high numbers as well.
+
+#### Quantitative Data
+
+```{r}
+critical_condition_trees <- tree_with_district |>
+  group_by(CounDist) |> 
+  summarise(
+    total_trees = n(),
+    critical_trees = sum(tpcondition == "Critical", na.rm = TRUE),
+    critical_fraction = critical_trees / total_trees
+  ) |>
+  arrange(desc(critical_fraction)) |> 
+  slice(1)
+
+total_trees_dis10 <- critical_condition_trees$total_trees
+dis10_critical_trees <- critical_condition_trees$critical_trees 
+```
+
+Based on our data, we found that District 10 has the highest critical condition percentage among all districts.
+
+-   Total Trees = `{r} total_trees_dis10`
+
+-   Critical Trees = `{r} dis10_critical_trees`
+
+-   $200,000 cost to restore all District 10 critical trees with intensive treatment
+
+
+
+```{r}
+#| message: false
+#| warning: false
+district_10 <- nyc_council |> filter(CounDist == 10)
+
+trees_district_10 <- tree_with_district |>
+  filter(CounDist == 10) |>
+  mutate(
+    condition_status = case_when(
+      tpcondition == "Good" ~ "Good",
+      tpcondition == "Fair" ~ "Fair",
+      tpcondition == "Poor" ~ "Poor",
+      tpcondition == "Critical" ~ "Critical",
+      TRUE ~ "Unknown"
+    )
+  )
+
+tree_sample <- trees_district_10 |> slice_sample(n = min(nrow(trees_district_10), 13963))
+
+pal <- colorFactor(
+  palette = c("Critical" = "red", "Good" = "green",  "Fair" = "yellow", "Poor" = "orange", "Unknown" = "gray"),
+  domain = tree_sample$condition_status
+)
+
+leaflet() |>
+  addTiles() |>
+  addPolygons(
+    data = district_10,
+    fillColor = "transparent",
+    color = "black",
+    weight = 2,
+    popup = ~paste("District:", CounDist)
+  ) |>
+  addCircleMarkers(
+    data = tree_sample,
+    radius = 3,
+    color = ~pal(condition_status),
+    stroke = FALSE,
+    fillOpacity = 0.7,
+    clusterOptions = markerClusterOptions(),
+    popup = ~paste("Species:", genusspecies, "<br>Condition:", tpcondition)
+  ) |>
+  setView(
+    lng = st_coordinates(st_centroid(district_10))[1],
+    lat = st_coordinates(st_centroid(district_10))[2],
+    zoom = 15
+  ) |>
+  addLegend(
+    "bottomright", 
+    pal = pal, 
+    values = tree_sample$condition_status,
+    title = "Tree Condition in District 10"
+  )
+```
+
+#### Why Is District 10 The Right Place?
+
+Although there is a total of fewer trees compared to other districts, the critical fraction is relatively high, signaling that its tree population may be in danger.
+
+```{r}
+#| message: false
+#| warning: false
+critical_condition_comparison <- tree_with_district |>
+  group_by(CounDist) |> 
+  summarise(
+    total_trees = n(),
+    critical_trees = sum(tpcondition == "Critical", na.rm = TRUE),
+    critical_fraction = critical_trees / total_trees
+  ) |>
+  arrange(desc(critical_fraction)) |> 
+  slice_head(n=5) 
+
+library(DT)
+library(stringr)
+
+format_titles <- function(df){
+  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+  df
+}
+
+critical_condition_comparison |>
+  select(-geometry) |>
+  format_titles() |>
+  datatable(
+    options = list(
+      searching = FALSE, 
+      info = FALSE, 
+      pageLength = 5,
+      columnDefs = list(list(className = 'dt-center', targets = "_all"))
+    ),
+    rownames = FALSE
+  ) |>
+  formatPercentage("Critical Fraction", 1) |>
+  formatStyle(
+    "Coundist", 
+    target = 'row',
+    backgroundColor = styleEqual("10", "lightblue"), 
+    fontWeight = styleEqual("10", "bold")
+  ) |>
+  formatRound(c("Total Trees", "Critical Trees"), 0) 
+```
+
+```{r}
+ggplot(critical_condition_comparison, aes(x = reorder(CounDist, critical_fraction), y = critical_fraction*100)) +
+  geom_col(fill = "red") +
+  coord_flip() + 
+  labs(
+    title = "Top 5 NYC City Council Districts by Fraction of Critical Trees",
+    x = "Council District",
+    y = "Fraction of Trees in Critical Condition",
+    caption = "Data: NYC OpenData"
+  ) +
+  theme_minimal(base_size = 8) +
+  geom_text(aes(label = paste0(round(critical_fraction*100,1), "%")), 
+            hjust = -0.1, size = 5) +
+  scale_y_continuous(limits = c(0, max(critical_condition_comparison$critical_fraction*100)*1.2))
+
+```
+
+Compared to District 9, District 10 shows a higher density of trees in critical condition, which is what this project hopes to target. We can see where the concentration truly is and which areas we should target first in case its causing any problems. 
+
+```{r}
+#| message: false
+#| warning: false
+library(patchwork)  
+
+districts_9_10 <- nyc_council |> filter(CounDist %in% c(9, 10))
+
+trees_9_10 <- tree_with_district |>
+  filter(CounDist %in% c(9, 10)) |>
+  mutate(critical_flag = ifelse(tpcondition == "Critical", "Critical", "Other"))
+
+plot_heatmap <- function(district_number){
+  district <- districts_9_10 |> filter(CounDist == district_number)
+  trees <- trees_9_10 |> filter(CounDist == district_number, critical_flag == "Critical") |>
+    mutate(lon = st_coordinates(geometry)[,1],
+           lat = st_coordinates(geometry)[,2])
+  
+  ggplot() +
+    geom_sf(data = district, fill = NA, color = "black", size = 0.5) +
+    stat_density_2d(
+      data = trees,
+      aes(x = lon, y = lat, fill = ..level.., alpha = ..level..),
+      geom = "polygon",
+      contour = TRUE
+    ) +
+    scale_fill_gradient(low = "green", high = "red") +
+    scale_alpha(range = c(0.1, 0.5), guide = "none") +
+    labs(
+      title = NULL,
+      fill = "Density"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      axis.title = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks = element_blank()
+    )
+}
+
+p9 <- plot_heatmap(9) + theme(legend.position = "none")
+p10 <- plot_heatmap(10)
+
+combined_plot <- p9 + p10 +
+  plot_annotation(
+    title = "Highest Concentration of Critical Trees",
+    caption = "Left: District 9 | Right: District 10"
+  )
+
+combined_plot
+```
+
+To conclude, District 10 needs immediate assistance to treat these trees to improve everything and everyone's quality of life. This project will not only protect those trees for the future, but protect everyone from its dangers in the present. 
