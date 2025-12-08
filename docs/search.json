@@ -117,5 +117,47 @@
     "title": "Visualizing and Maintaining the Green Canopy of NYC",
     "section": "District-Level Analyses of Trees",
     "text": "District-Level Analyses of Trees\n\nTask 4: District-Level Analysis of Tree Coverage\n1. Which council district has the most trees?\n2. Which council district has the highest density of trees? The Shape_Area column from the district shape file will be helpful here.\n3. Which district has highest fraction of dead trees out of all trees?\n4. What is the most common tree species in Manhattan?\n5. What is the species of the tree closest to Baruch’s campus?"
+  },
+  {
+    "objectID": "mp04.html",
+    "href": "mp04.html",
+    "title": "Just the Fact(-Check)s, Ma’am!",
+    "section": "",
+    "text": "Throughout this report, we will obtain and analyze data to evaluate President Trump’s rationale in firing the Commissioner of Labor Statistics, Dr. Erika McEntarfer."
+  },
+  {
+    "objectID": "mp04.html#data-acquisition",
+    "href": "mp04.html#data-acquisition",
+    "title": "Just the Fact(-Check)s, Ma’am!",
+    "section": "",
+    "text": "Your analysis will depend on two separate data sources:\nThe (final) CES estimates of the total employment level of the United States; and The cycle-to-cycle revisions of the CES estimate. #have to reword this\n\n\n\n\n\n\nNoteTask 1: Download CES Total Nonfarm Payroll\n\n\n\n\n\n\n\n\n\n\n\n\nNoteTask 2: Download CES Revisions Tables"
+  },
+  {
+    "objectID": "mp04.html#data-integration",
+    "href": "mp04.html#data-integration",
+    "title": "Just the Fact(-Check)s, Ma’am!",
+    "section": "",
+    "text": "some writing here"
+  },
+  {
+    "objectID": "mp04.html#data-integration-and-exploration",
+    "href": "mp04.html#data-integration-and-exploration",
+    "title": "Just the Fact(-Check)s, Ma’am!",
+    "section": "",
+    "text": "NoteTask 3: Data Exploration and Visualization"
+  },
+  {
+    "objectID": "mp04.html#statistics",
+    "href": "mp04.html#statistics",
+    "title": "Just the Fact(-Check)s, Ma’am!",
+    "section": "Statistics",
+    "text": "Statistics\n\nLargest Possible Revision\n\n\nCode\nl_ps_rev &lt;- ces_joined |&gt; \n  filter(revision == max(revision, na.rm = TRUE)) |&gt;\n  select(date, original, final, revision, month_year)\n\nces_joined|&gt; \n  arrange(desc(revision)) |&gt; \n  slice_head(n = 5) |&gt; \n  format_titles() |&gt; \n  datatable(\n    caption = \"Largest 5 Positive CES Revisions\",\n    options = list(searching=FALSE, info=FALSE)\n  )\n\n\n\n\n\n\nThis helps us identify the single month in which initial employment understated the final estimate by the largest estimate. This is useful to understand extreme cases of first-estimate error and explore what economic conditions or data issues led to such a large upward revision.\nBased on our findings, we were able to see the largest upward revision occurred in Nov 2021, with an increase of 437,000 jobs.\n\n\nLargest Negative Revision\n\n\nCode\nl_negative_rev &lt;- ces_joined |&gt; \n  filter(revision == min(revision, na.rm = TRUE)) |&gt;\n  select(date, original, final, revision, month_year)\n\nces_joined|&gt; \n  arrange(revision) |&gt; \n  slice_head(n = 5) |&gt; \n  format_titles() |&gt; \n  datatable(\n    caption = \"Largest 5 Negative CES Revisions\",\n    options = list(searching=FALSE, info=FALSE)\n  )\n\n\n\n\n\n\nThis statistic will allow us to find the single month in which initial employment employment overstated the final estimate by the largest estimate, representing a downward correction.\nThrough our analysis, we were able to find out the largest negative revision occurred in Mar 2020. There was a total decrease in jobs of -672,000 this month for all 45 years.\n\n\nMean Absolute Revision\n\n\nCode\nMean_abs_rev &lt;-ces_joined |&gt;\n  summarise(mean_abs_revision = mean(abs(revision), na.rm = TRUE))\n\n\nBased on our findings, the mean absolute revision of 56.8960573 thousand jobs indicates that the preliminary CES payroll estimate typically differs from the final bench marked estimate by about 57,000 jobs each month.\n\n\nFraction Positive by Year Or Decade (CES Revisions)\n\n\nCode\nces_pr_rev2 &lt;- ces_joined |&gt; \n  mutate(\n    year = year(date), \n    decade = floor(year/10) * 10, \n    month = month(date, label = TRUE, abbr = TRUE)\n  )\n\n\nThis statistic allows us to compute the fraction of positive revisions to tells us whether BLS revisions tend to be biased upward or downward in a given period. Additionally, it demonstrates patterns by decade, which in turn reveal long-run structural differences in the labor market.\n\n\nAbsolute Revision as Percentage of the Monthly Payroll Level\n\n\nCode\nces_pr_rev_pctlevel &lt;- ces_pr_rev2 |&gt;\n  mutate(\n    abs_rev_pct_level= abs(revision) / ifelse(level == 0, NA_real_, level)\n    )\n\nyearly_absrev_pctlevel &lt;- ces_pr_rev_pctlevel |&gt;\n  group_by(year) |&gt;\n  summarise(\n    avg_absrev_pct = mean(abs_rev_pct_level, na.rm = TRUE), \n    med_absrev_pct = median(abs_rev_pct_level, na.rm = TRUE),\n    n = n()) |&gt;\n  arrange(year)\n\n\nThe purpose and function of this computation estimates the revision size relative to the total employment level in the given month. Essentially, it helps us understand whether revisions are becoming more or less important relative to the size of the labor market.\n\n\nRevision Magnitude by Calendar Month\n\n\nCode\nmonth_summary &lt;- ces_pr_rev2 |&gt;\n  group_by(month) |&gt; \n  summarise(\n    avg_rev = mean(revision, na.rm = TRUE),\n    mean_abs_revision = mean(abs(revision), na.rm = TRUE), \n    med_abs_rev = median(abs(revision), na.rm = TRUE),\n    n = n()) |&gt;\n  arrange(month)\n\n\nFinally, this analysis identifies whether certain months are consistently producing larger or smaller revisions."
+  },
+  {
+    "objectID": "mp04.html#visualizations",
+    "href": "mp04.html#visualizations",
+    "title": "Just the Fact(-Check)s, Ma’am!",
+    "section": "Visualizations",
+    "text": "Visualizations\n\n\nCode\nggplot(ces_joined, aes(date, revision)) +\n  geom_col(fill = \"gray80\") +\n  geom_point(data = l_ps_rev, aes(date, revision), color = \"blue\", size = 4) +\n  geom_point(data = l_negative_rev, aes(date, revision), color = \"red\", size = 4) +\n  geom_text(\n    data = l_ps_rev,\n    aes(label = paste0(\"Largest +: \", revision)),\n    nudge_y = 200, size = 3, color = \"blue\"\n  ) +\n  geom_text(\n    data = l_negative_rev,\n    aes(label = paste0(\"Largest -: \", revision)),\n    nudge_y = -200, size = 3, color = \"red\"\n  ) +\n  labs(\n    title = \"Largest Positive & Negative CES Revisions (1979–2025)\",\n    x = \"Date\", \n    y = \"Revision\"\n  ) +\n  theme_minimal()\n\n\n\n\n\n\n\n\n\n\n\nCode\nfraction_positive_by_year &lt;- ces_pr_rev2 |&gt; \n  group_by(year) |&gt; \n  summarise(\n    frac_pos = mean(revision &gt; 0, na.rm = TRUE)\n  )\n\nggplot(fraction_positive_by_year, aes(year, frac_pos)) +\n  geom_line() +\n  geom_point() +\n  scale_y_continuous(labels = scales::percent_format()) +\n  labs(\n    title = \"Fraction of Positive CES Revisions – By Year\",\n    x = \"Year\", \n    y = \"% Positive Revisions\"\n  ) +\n  theme_minimal()\n\n\n\n\n\n\n\n\n\n\n\nCode\nggplot(yearly_absrev_pctlevel, aes(year, avg_absrev_pct)) +\n  geom_line() +\n  geom_point() +\n  geom_smooth(se = FALSE, linetype = \"dashed\") +\n  scale_y_continuous(labels = scales::percent_format()) +\n  labs(\n    title = \"Average Absolute Revision as % of Employment Level\",\n    x = \"Year\", \n    y = \"Average Absolute Revision / Level\"\n  ) +\n  theme_minimal()\n\n\n\n\n\n\n\n\n\n\n\nCode\nggplot(ces_pr_rev2, aes(month, abs(revision))) +\n  geom_boxplot(fill = \"steelblue\", alpha = 0.7) +\n  scale_y_continuous(labels = scales::comma_format()) +\n  labs(\n    title = \"Distribution of Absolute CES Revisions by Calendar Month\",\n    x = \"Month\",\n    y = \"Absolute Revision\"\n  ) +\n  theme_minimal()"
   }
 ]

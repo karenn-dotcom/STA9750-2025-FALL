@@ -1,0 +1,545 @@
+---
+title: "Just the Fact(-Check)s, Ma’am!"
+subtitle: "Mini-Project #04"
+author: "Karen Cruz"
+---
+
+# Introduction
+
+Throughout this report, we will obtain and analyze data to evaluate President Trump's rationale in firing the Commissioner of Labor Statistics, Dr. Erika McEntarfer.
+
+------------------------------------------------------------------------
+
+# Data Acquisition
+
+Analysis will be based on two different data sources:
+
+-   The (final) CES estimates of the total employment level of the United States
+-   The cycle-to-cycle revisions of the CES estimate
+
+::: {.callout-note title="Task 1: Download CES Total Nonfarm Payroll"}
+:::
+
+### Final CES Estimates
+
+```{r}
+#| include: false
+format_titles <- function(df){
+  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+  df
+}
+```
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(httr2)
+library(rvest)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(lubridate)
+library(readr)
+library(DT)
+
+resp_payroll <- request("https://data.bls.gov/pdq/SurveyOutputServlet") |>
+  req_method("POST") |>
+  req_body_form(
+    request_action = "get_data", 
+    reformat = "true",
+    from_results_page = "true",
+    series_id    = "CES0000000001",
+    from_year    = "1979",
+    to_year      = "2025", 
+    output_view = "data", 
+    result_format = "html" 
+  ) |>
+  req_perform()
+
+resp_status(resp_payroll)
+
+tbl <- resp_payroll |>
+  resp_body_html() |>
+  html_element("#table0") |>
+  html_table()
+
+# Clean column names
+colnames(tbl)[1] <- "year"
+
+# Pivot month columns (Jan–Dec)
+month_cols <- intersect(
+  c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"),
+  colnames(tbl)
+)
+
+df <- tbl |>
+  select(year, all_of(month_cols)) |>
+  pivot_longer(
+    cols = all_of(month_cols),
+    names_to = "month",
+    values_to = "level_raw"
+  ) |>
+  mutate(
+    # clean values (remove commas, asterisks, ^, footnotes, etc.)
+    level = parse_number(level_raw),
+    # build a "1979 Jan" → 1979-01-01 string
+    ym_str = paste(year, month),
+    date = ym(ym_str)
+  ) |>
+  # drop footnote rows + empty rows
+  drop_na(date, level) |>
+  arrange(date)
+
+# Filter through 2025-06
+df_final <- df |>
+  filter(date <= ymd("2025-06-01")) |>
+  select(date, level)
+
+
+df_final |> format_titles() |>
+  datatable( 
+    rownames = FALSE,
+    options = list(pageLength = 10),
+    caption = "CES Total Nonfarm Payrolls, 1979–2025")
+
+```
+
+::: {.callout-note title="Task 2: Download CES Revisions Tables"}
+:::
+
+```{r}
+#| message: false
+#| warning: false
+rev_url <- "https://www.bls.gov/web/empsit/cesnaicsrev.htm"
+
+ces_rev <- request(rev_url) |>
+  req_user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36") |>
+  req_headers(
+    "Sec-Ch-Ua" = "\"Chromium\";v=\"121\", \"Not A(Brand\";v=\"99\"",
+    "Sec-Ch-Ua-Platform" = "\"macOS\"",
+    "Sec-Fetch-Site" = "none",
+    "Sec-Fetch-Mode" = "navigate",
+    "Sec-Fetch-User" = "?1",
+    "Sec-Fetch-Dest" = "document"
+  ) |>
+  req_options(
+    ssl_verifypeer = FALSE,
+    ssl_verifyhost = FALSE
+  ) |>
+  req_perform() |>
+  resp_body_html()
+
+extract_revision_year <- function(year) {
+  
+  tbl_node <- ces_rev |> html_element(paste0("#", year))
+  
+  if (inherits(tbl_node, "xml_missing")) {
+    message("Table for ", year, " not found. Skipping.")
+    return(NULL)
+  }
+  
+  tbl_raw <- tbl_node |> html_table(header = FALSE, fill = TRUE)
+  
+  tbl_clean <- tbl_raw |> slice(4:15)
+  
+  tbl_clean <- tbl_clean |> select(
+    month = 1,
+    year = 2,
+    original = 3,
+    final = 5
+  )
+  
+  tbl_clean <- tbl_clean |>
+    mutate(
+      original = as.numeric(original),
+      final = as.numeric(final),
+      date = ym(paste(year, month)),
+      revision = final - original
+    ) |>
+    select(date, original, final, revision)
+  
+  return(tbl_clean)
+}
+
+years <- 1979:2025
+
+rev_df <- map_df(years, extract_revision_year)
+
+rev_df |> format_titles() |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10), 
+    caption = "CES Revisions, 1979-2025"
+  )
+```
+
+------------------------------------------------------------------------
+
+# Data Integration and Exploration
+
+To continue further with our data analysis, we must first combine both data into a singular table, helping us investigate trends in CES levels and revisions.
+
+```{r}
+ces_joined <- rev_df |>
+  inner_join(df_final, by = "date") |>
+  mutate(
+    month_year = format(date, "%b %Y")   # "Nov 1998"
+  )
+
+ces_joined |> select(-month_year) |>
+  format_titles() |>
+  datatable(
+    rownames = FALSE, 
+    options = list(openLength = 10), 
+    caption = "CES Levels and Revisions"
+  ) 
+```
+
+::: {.callout-note title="Task 3: Data Exploration and Visualization"}
+:::
+
+## Statistics
+
+#### Largest Possible Revision
+
+```{r}
+l_ps_rev <- ces_joined |> 
+  filter(revision == max(revision, na.rm = TRUE)) |>
+  select(date, original, final, revision, month_year)
+
+ces_joined|> 
+  arrange(desc(revision)) |> 
+  slice_head(n = 5) |> 
+  format_titles() |> 
+  datatable(
+    caption = "Largest 5 Positive CES Revisions",
+    options = list(searching=FALSE, info=FALSE)
+  )
+
+```
+
+This helps us identify the single month in which initial employment *understated* the final estimate by the largest estimate. This is useful to understand extreme cases of first-estimate error and explore what economic conditions or data issues led to such a large **upward** revision.
+
+Based on our findings, we were able to see the largest upward revision occurred in `{r} l_ps_rev$month_year`, with an increase of **`{r} format(round(l_ps_rev$revision * 1000,0), big.mark = ",")`** jobs.
+
+#### Largest Negative Revision
+
+```{r}
+l_negative_rev <- ces_joined |> 
+  filter(revision == min(revision, na.rm = TRUE)) |>
+  select(date, original, final, revision, month_year)
+
+ces_joined|> 
+  arrange(revision) |> 
+  slice_head(n = 5) |> 
+  format_titles() |> 
+  datatable(
+    caption = "Largest 5 Negative CES Revisions",
+    options = list(searching=FALSE, info=FALSE)
+  )
+```
+
+This statistic will allow us to find the single month in which initial employment employment *overstated* the final estimate by the largest estimate, representing a **downward** correction.
+
+Through our analysis, we were able to find out the largest negative revision occurred in `{r} l_negative_rev$month_year`. There was a total decrease in jobs of **`{r} format(round(l_negative_rev$revision * 1000,0), big.mark = ",")`** this month for all 45 years.
+
+#### Mean Absolute Revision
+
+```{r}
+#| output: FALSE
+Mean_abs_rev <-ces_joined |>
+  summarise(mean_abs_revision = mean(abs(revision), na.rm = TRUE))
+```
+
+Based on our findings, the mean absolute revision of **`{r} Mean_abs_rev$mean_abs_revision`** thousand jobs indicates that the preliminary CES payroll estimate typically differs from the final bench marked estimate by about 57,000 jobs each month.
+
+#### Fraction Positive by Year Or Decade (CES Revisions)
+
+```{r}
+ces_pr_rev2 <- ces_joined |> 
+  mutate(
+    year = year(date), 
+    decade = floor(year/10) * 10, 
+    month = month(date, label = TRUE, abbr = TRUE)
+  )
+```
+
+This statistic allows us to compute the fraction of positive revisions to tells us whether BLS revisions tend to be biased upward or downward in a given period. Additionally, it demonstrates patterns by decade, which in turn reveal long-run structural differences in the labor market.
+
+#### Absolute Revision as Percentage of the Monthly Payroll Level
+
+```{r}
+ces_pr_rev_pctlevel <- ces_pr_rev2 |>
+  mutate(
+    abs_rev_pct_level= abs(revision) / ifelse(level == 0, NA_real_, level)
+    )
+
+yearly_absrev_pctlevel <- ces_pr_rev_pctlevel |>
+  group_by(year) |>
+  summarise(
+    avg_absrev_pct = mean(abs_rev_pct_level, na.rm = TRUE), 
+    med_absrev_pct = median(abs_rev_pct_level, na.rm = TRUE),
+    n = n()) |>
+  arrange(year)
+```
+
+The purpose and function of this computation estimates the revision size relative to the total employment level in the given month. Essentially, it helps us understand whether revisions are becoming more or less important relative to the size of the labor market.
+
+#### Revision Magnitude by Calendar Month
+
+```{r}
+month_summary <- ces_pr_rev2 |>
+  group_by(month) |> 
+  summarise(
+    avg_rev = mean(revision, na.rm = TRUE),
+    mean_abs_revision = mean(abs(revision), na.rm = TRUE), 
+    med_abs_rev = median(abs(revision), na.rm = TRUE),
+    n = n()) |>
+  arrange(month)
+```
+
+Finally, this analysis identifies whether certain months are consistently producing larger or smaller revisions.
+
+## Visualizations
+
+```{r}
+ggplot(ces_joined, aes(date, revision)) +
+  geom_col(fill = "gray80") +
+  geom_point(data = l_ps_rev, aes(date, revision), color = "blue", size = 4) +
+  geom_point(data = l_negative_rev, aes(date, revision), color = "red", size = 4) +
+  geom_text(
+    data = l_ps_rev,
+    aes(label = paste0("Largest +: ", revision)),
+    nudge_y = 200, size = 3, color = "blue"
+  ) +
+  geom_text(
+    data = l_negative_rev,
+    aes(label = paste0("Largest -: ", revision)),
+    nudge_y = -200, size = 3, color = "red"
+  ) +
+  labs(
+    title = "Largest Positive & Negative CES Revisions (1979–2025)",
+    x = "Date", 
+    y = "Revision"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+fraction_positive_by_year <- ces_pr_rev2 |> 
+  group_by(year) |> 
+  summarise(
+    frac_pos = mean(revision > 0, na.rm = TRUE)
+  )
+
+ggplot(fraction_positive_by_year, aes(year, frac_pos)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Fraction of Positive CES Revisions – By Year",
+    x = "Year", 
+    y = "% Positive Revisions"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#| message: false
+#| warning: false
+ggplot(yearly_absrev_pctlevel, aes(year, avg_absrev_pct)) +
+  geom_line() +
+  geom_point() +
+  geom_smooth(se = FALSE, linetype = "dashed") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Average Absolute Revision as % of Employment Level",
+    x = "Year", 
+    y = "Average Absolute Revision / Level"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(ces_pr_rev2, aes(month, abs(revision))) +
+  geom_boxplot(fill = "steelblue", alpha = 0.7) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(
+    title = "Distribution of Absolute CES Revisions by Calendar Month",
+    x = "Month",
+    y = "Absolute Revision"
+  ) +
+  theme_minimal()
+```
+
+------------------------------------------------------------------------
+
+# Statistical Analysis
+
+Now, we will use the t-test and prop_test functions to complete our analyses.
+
+::: {.callout-note title="Task 4: Statistical Inference"}
+:::
+
+#### **Test 1: Has the average revision increased post-2020?**
+
+```{r}
+#| warning: false
+library(infer)
+
+ttest_post2020 <- ces_pr_rev2 |>
+  filter(!is.na(revision), !is.na(year)) |>
+  mutate(post2020 = year >= 2020) |>          # TRUE/FALSE
+  t_test(revision ~ post2020,                 # numeric ~ factor
+         alternative = "two.sided")
+
+ttest_post2020
+```
+
+**H~0~: μ~post2020~ = μ~pre2020~**
+
+**H~a~: μ~post2020~ ≠ μ~pre2020~**
+
+Based on the results for this t test, the p-value is `{r} format(round(ttest_post2020$p_value, 3), nsmall = 3)` \> a=.05. We can conclude H~0~, meaning there is no significant evidence claiming there is an increase in average revision post 2020.
+
+#### **Test 2: Is the Mean Revision Significantly Different from Zero?**
+
+```{r}
+ttest_result <- ces_joined |>
+  filter(!is.na(revision)) |>
+  t_test(revision~NULL, mu = 0, alternative = "two.sided")
+
+ttest_result
+```
+
+**H~0~: μ~revision~ = 0**
+
+**H~a~: μ~revision~ ≠ 0**
+
+Since p-value=`{r} format(round(ttest_result$p_value, 2), nsmall = 2)` \< .05, we can conclude H~a~, there is evidence that the mean revision is not 0. Analyzing the t test results further, we can also conclude with 95 percent confidence, revisions range from an interval between `{r} format(round(ttest_result$lower_ci, 2), nsmall = 2)` and `{r} format(round(ttest_result$upper_ci, 2), nsmall = 2)`.
+
+------------------------------------------------------------------------
+
+# Fact Check BLS Revisions
+
+```{r}
+#| output: false 
+library(tidyverse)
+presidents_party <- tidyr::expand_grid(year=1979:2025, 
+                                       month = month.name, 
+                                       president = NA, 
+                                       party = NA) |> 
+    mutate(president = case_when(
+        (month == "January")  & (year == 1979) ~ "Carter",
+        # BLS jobs reports come out on the first Friday, so February
+        # is the first time a new president 'owns' the jobs number 
+        (month == "February") & (year == 1981) ~ "Reagan",
+        (month == "February") & (year == 1989) ~ "Bush 41",
+        (month == "February") & (year == 1993) ~ "Clinton",
+        (month == "February") & (year == 2001) ~ "Bush 43",
+        (month == "February") & (year == 2009) ~ "Obama",
+        (month == "February") & (year == 2017) ~ "Trump I",
+        (month == "February") & (year == 2021) ~ "Biden",
+        (month == "February") & (year == 2025) ~ "Trump II",
+    )) |>
+    tidyr::fill(president) |>
+    mutate(party = if_else(president %in% c("Carter", "Clinton", "Obama", "Biden"), 
+                           "D", 
+                           "R"), 
+           month = as.character(month)) 
+
+ces_full <- ces_pr_rev2 |>
+  mutate(
+    month = month(date, label = TRUE, abbr = FALSE),
+    month = as.character(month)
+  ) |>
+  left_join(
+    presidents_party |> 
+      mutate(month = month), 
+    by = c("year", "month")
+  )
+```
+
+::: {.callout-note title="Task 5: Fact Checks of Claims about BLS"}
+:::
+
+#### **Claim 1: “The number of full-time jobs (was) dropping almost the entire Biden administration. -Rick Scott (2025)”**
+
+::: {.callout-important title="FALSE"}
+:::
+
+```{r}
+#| output: false
+# Fraction of positive revisions for Biden administration (2021–2024)
+fraction_positive_biden <- ces_pr_rev2 |>
+  filter(date >= as.Date("2021-02-01") & date < as.Date("2025-02-01")) |>
+  summarise(
+    frac_pos = mean(revision > 0, na.rm = TRUE),
+    n_months = sum(!is.na(revision))
+  )
+
+fraction_positive_biden
+```
+
+Statistics:
+
+1.  Largest upward revision occurred in `{r} l_ps_rev$month_year`, understating employment by `{r} format(round(l_ps_rev$revision * 1000, 0), big.mark = ",")`.
+2.  Largest downward revision of `{r} format(round(l_negative_rev$revision * 1000,0), big.mark = ",")` jobs in `{r} format(round(l_negative_rev$revision * 1000,0), big.mark = ",")`, COVID-19 heavily influenced this number.
+3.  `{r} paste0(format(round(fraction_positive_biden$frac_pos * 100, 1), big.mark = ","), "%")` of the `{r} fraction_positive_biden$n_months` months during the Biden administration had positive revisions
+
+##### *Hypothesis testing*: Were unemployment changes negative during Biden administration?
+
+Test 2 during our statistical analysis demonstrates that there were no significant evidence that revisions negative post 2020.
+
+#### **Claim 2: “Bureau of Labor Statistics employment numbers “were rigged” when the agency revised them “down by almost 900,000 jobs” after the 2024 election. -Donald Trump (2025)”**
+
+::: {.callout-important title="FALSE"}
+:::
+
+```{r}
+#| output: false
+stat_mean_abs_rev_periods <- ces_joined |>
+  mutate(
+    abs_rev = abs(revision),
+    period = if_else(date < as.Date("2020-01-01"), "pre2020", "post2020")
+  ) |>
+  group_by(period) |>
+  summarise(mean_abs_revision = mean(abs_rev, na.rm = TRUE))
+```
+
+Statistics
+
+1\. Average revision is small
+
+2\. Rise in revision magnitude post 2020
+
+```{r}
+stat_mean_abs_rev_periods
+```
+
+3.  Visualizations show no extreme revisions
+
+##### *Hypothesis Testing*: Revisions after 2024 election were unusually and systematically large and negative.
+
+**H~0~: μ~post~ = μ~pre~**
+
+**H~a~: μ~post~\~ ≠ μ~pre~**
+
+```{r}
+#| warning: false
+rev_post2024 <- ces_joined |>
+  mutate(post_election = date >= as.Date("2024-11-01")) |>
+  filter(!is.na(revision)) |>
+  t_test(revision ~ post_election,
+         alternative = "less")   # testing if post-election revisions are LOWER
+rev_post2024
+```
+
+Since p-value \< .05, we fail to reject H~0~, there is no significant evidence revisions after the 2020 election were unusually large.
+
+------------------------------------------------------------------------
+
+# Conclusion
+
+Taking into account CES payroll data, revisions records, and our statistical analysis, we can come to one conclusion: payroll levels rose steadilty during the Biden administration and the revisions were not "rigged" after the 2024 election. The firing of commissioner Dr. Entafer has been commented to be a sign of misconduct by multiple journalists and commentators. Ultimately, there are many claims that could be made, but in the end, statistical records will hold the truth.
