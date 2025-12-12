@@ -159,5 +159,40 @@
     "title": "Just the Fact(-Check)s, Ma’am!",
     "section": "Visualizations",
     "text": "Visualizations\n\n\nCode\nggplot(ces_joined, aes(date, revision)) +\n  geom_col(fill = \"gray80\") +\n  geom_point(data = l_ps_rev, aes(date, revision), color = \"blue\", size = 4) +\n  geom_point(data = l_negative_rev, aes(date, revision), color = \"red\", size = 4) +\n  geom_text(\n    data = l_ps_rev,\n    aes(label = paste0(\"Largest +: \", revision)),\n    nudge_y = 200, size = 3, color = \"blue\"\n  ) +\n  geom_text(\n    data = l_negative_rev,\n    aes(label = paste0(\"Largest -: \", revision)),\n    nudge_y = -200, size = 3, color = \"red\"\n  ) +\n  labs(\n    title = \"Largest Positive & Negative CES Revisions (1979–2025)\",\n    x = \"Date\", \n    y = \"Revision\"\n  ) +\n  theme_minimal()\n\n\n\n\n\n\n\n\n\n\n\nCode\nfraction_positive_by_year &lt;- ces_pr_rev2 |&gt; \n  group_by(year) |&gt; \n  summarise(\n    frac_pos = mean(revision &gt; 0, na.rm = TRUE)\n  )\n\nggplot(fraction_positive_by_year, aes(year, frac_pos)) +\n  geom_line() +\n  geom_point() +\n  scale_y_continuous(labels = scales::percent_format()) +\n  labs(\n    title = \"Fraction of Positive CES Revisions – By Year\",\n    x = \"Year\", \n    y = \"% Positive Revisions\"\n  ) +\n  theme_minimal()\n\n\n\n\n\n\n\n\n\n\n\nCode\nggplot(yearly_absrev_pctlevel, aes(year, avg_absrev_pct)) +\n  geom_line() +\n  geom_point() +\n  geom_smooth(se = FALSE, linetype = \"dashed\") +\n  scale_y_continuous(labels = scales::percent_format()) +\n  labs(\n    title = \"Average Absolute Revision as % of Employment Level\",\n    x = \"Year\", \n    y = \"Average Absolute Revision / Level\"\n  ) +\n  theme_minimal()\n\n\n\n\n\n\n\n\n\n\n\nCode\nggplot(ces_pr_rev2, aes(month, abs(revision))) +\n  geom_boxplot(fill = \"steelblue\", alpha = 0.7) +\n  scale_y_continuous(labels = scales::comma_format()) +\n  labs(\n    title = \"Distribution of Absolute CES Revisions by Calendar Month\",\n    x = \"Month\",\n    y = \"Absolute Revision\"\n  ) +\n  theme_minimal()"
+  },
+  {
+    "objectID": "ind_rep.html#literature-and-background",
+    "href": "ind_rep.html#literature-and-background",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "Literature and Background",
+    "text": "Literature and Background"
+  },
+  {
+    "objectID": "ind_rep.html#data-and-methods",
+    "href": "ind_rep.html#data-and-methods",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "Data and Methods",
+    "text": "Data and Methods"
+  },
+  {
+    "objectID": "ind_rep.html#results",
+    "href": "ind_rep.html#results",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "Results",
+    "text": "Results"
+  },
+  {
+    "objectID": "ind_rep.html#discussion",
+    "href": "ind_rep.html#discussion",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "Discussion",
+    "text": "Discussion"
+  },
+  {
+    "objectID": "ind_rep.html#conclusion",
+    "href": "ind_rep.html#conclusion",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "Conclusion",
+    "text": "Conclusion"
   }
 ]

@@ -1,0 +1,26 @@
+---
+title: "Citi Bike Usage in NYC: Individual Report"
+author: "Karen Cruz"
+---
+
+## Introduction
+
+---
+
+## Literature and Background 
+
+---
+
+## Data and Methods
+
+--- 
+
+## Results 
+
+---
+
+## Discussion
+
+--- 
+
+## Conclusion
