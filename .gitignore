@@ -23,3 +23,6 @@ data/**
 **/gganim*
 /.quarto/
 **/*.quarto_ipynb
+.RDataTmp
+.RData
+.Rhistory
