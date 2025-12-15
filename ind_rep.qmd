@@ -5,12 +5,14 @@ execute:
   freeze: true
 ---
 
-## Introduction
+## 1. Introduction
 
 Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s density, employment concentration, and extensive station coverage.
 
-Our study addresses the overarching question:\
-**“Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?”**
+Our study addresses the overarching question:
+
+\
+“*Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?*”
 
 As an initial step toward addressing the broader question, this analysis examines a related sub-question:
 
@@ -20,7 +22,7 @@ Temporal factors are widely recognized as strong predictors of transportation de
 
 ------------------------------------------------------------------------
 
-## Literary Review
+## 2. Literary Review
 
 Based on previous research on bike-share patterns and ridership, observations are consistent, including weekday commuting peaks and season variation. Multiple studies of Citi Bike data indicate that time-of-day and day-of-week explain a larger share of ridership variation compared to other individual rider characteristics.
 
@@ -30,7 +32,7 @@ The [ScienceDirect](https://doi.org/10.1016/j.jtrangeo.2024.103799) study reinfo
 
 ------------------------------------------------------------------------
 
-## Data and Methods
+## 3. Data and Methods
 
 ```{r}
 #| label: Citi Bike data download
@@ -238,12 +240,12 @@ if (!file.exists(final_path)) {
 
 This study uses monthly trip-level data from October 2024 through October 2025. The dataset provides detailed records including the trip's start time, station information, geographic coordinates, and rider classification (member or casual). It offers high temporal resolution and comprehensive coverage of bikeshare activity across New York City, making them well suited for analyzing short-term incurring temporal patterns in ridership.
 
-The analysis of the specific question focuses specifically on trip start times, as this best reflects rider decision-making and demand for bikeshare services. Using such trip-level data allows for more flexible aggregation across varying temporal scales while preserving the underlying structure of usage patterns.
+The analysis of the specific question focuses specifically on trip start times, as this best reflects rider decision-making and demand for bike-share services. Using such trip-level data allows for more flexible aggregation across varying temporal scales while preserving the underlying structure of usage patterns.
 
 ### 3.2 Data Processing
 
 ```{r}
-library(data.table)
+#| message: false
 library(ggplot2)
 library(scales)
 library(lubridate)
@@ -285,8 +287,11 @@ Aggregating trips to hourly and daily counts, reducing noise inherent individual
 
 ### 3.3 Analytic Approach
 
+#### Exploratory Data Analysis (EDA)
+
 ```{r}
 #| label: Weekday vs Weekend Hourly Patterns
+#| echo: false
 
 hour_wknd <- citibike[
   ,
@@ -320,6 +325,7 @@ Hourly ridership was compared between weekdays and weekends to distinguish commu
 
 ```{r}
 #| label: Heatmap
+#| echo: false
 #| warning: false
 heatmap_dt <- citibike[
   ,
@@ -346,12 +352,125 @@ ggplot(heatmap_dt, aes(x = hour, y = dow, fill = N)) +
 This heat map was used to visualize hourly and weekly ridership intensity for Manhattan. Weekends display strong daytime and commute peaks, while weekends exhibit flatter, more evenly distributed ridership patterns consistent with non-commuting travel.
 
 ```{r}
-#| label: Regression
-#| warning: false
-library(broom)
+#| echo: false
+
 hourly_counts <- citibike[
-  , .N, by = .(date, hour, wknd)
+  ,
+  .N,
+  by = .(date, hour, wknd)
 ]
+
+hourly_counts[, peak := hour %in% c(7:9, 16:18)]
+
+avg_hourly <- hourly_counts[
+  ,
+  .(avg_hourly_trips = mean(N)),
+  by = wknd
+]
+
+weekday_avg <- avg_hourly[wknd == "Weekday", avg_hourly_trips]
+
+avg_hourly[
+  ,
+  pct_diff_vs_weekday :=
+    (avg_hourly_trips - weekday_avg) / weekday_avg * 100
+]
+
+peak_stats <- hourly_counts[
+  ,
+  .(avg_trips = mean(N)),
+  by = .(wknd, peak)
+]
+
+peak_stats[, peak := ifelse(peak, "Peak Hours", "Off-Peak Hours")]
+
+peak_share <- hourly_counts[
+  ,
+  .(total_trips = sum(N)),
+  by = .(wknd, peak)
+][
+  ,
+  share_of_trips := total_trips / sum(total_trips),
+  by = wknd
+][
+  peak == TRUE,
+  .(wknd, share_of_peak_trips = share_of_trips)
+]
+
+summary_table <- merge(
+  avg_hourly[, .(wknd, avg_hourly_trips, pct_diff_vs_weekday)],
+  peak_stats[peak == "Peak Hours", .(wknd, peak_avg_trips = avg_trips)],
+  by = "wknd"
+)
+
+summary_table <- merge(
+  summary_table,
+  peak_share,
+  by = "wknd"
+)
+
+summary_table <- merge(
+  avg_hourly[, .(wknd, avg_hourly_trips, pct_diff_vs_weekday)],
+  peak_stats[peak == "Peak Hours", .(wknd, peak_avg_trips = avg_trips)],
+  by = "wknd"
+)
+
+summary_table <- merge(
+  summary_table,
+  peak_share,
+  by = "wknd"
+)
+
+summary_table[
+  ,
+  `:=`(
+    avg_hourly_trips = round(avg_hourly_trips),
+    pct_diff_vs_weekday = round(pct_diff_vs_weekday, 1),
+    peak_avg_trips = round(peak_avg_trips),
+    share_of_peak_trips = round(share_of_peak_trips * 100, 1)
+  )
+]
+
+library(knitr)
+library(kableExtra)
+
+summary_table_pretty <- copy(summary_table)
+
+# Rename columns for readability
+setnames(
+  summary_table_pretty,
+  old = c("wknd",
+          "avg_hourly_trips",
+          "pct_diff_vs_weekday",
+          "peak_avg_trips",
+          "share_of_peak_trips"),
+  new = c("Day Type",
+          "Average Hourly Trips",
+          "% Difference vs Weekday",
+          "Peak-Hour Avg Trips",
+          "Share of Trips During Peak Hours (%)")
+)
+
+kable(
+  summary_table_pretty,
+  format = "html",
+  digits = 1,
+  caption = "Summary of Hourly Citi Bike Ridership by Day Type (Manhattan)"
+) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    position = "center"
+  )
+
+```
+
+#### Regression Modeling
+
+```{r}
+#| label: Regression
+#| echo: false
+#| warning: false
 
 hourly_counts[, hour_c := hour - mean(hour)]
 
@@ -386,18 +505,55 @@ ggplot(coef_df, aes(x = estimate, y = term)) +
 
 Coefficient estimated from a linear regression of hourly Citi Bike trip counts in Manhattan, using hour-of-day fixed effects and a weekend indicator.
 
+```{r}
+#| echo: false
+# Tidy regression output
+reg_table <- broom::tidy(model, conf.int = TRUE)
+
+# Drop everything except weekend effect
+reg_table <- reg_table[reg_table$term == "wkndWeekend", ]
+
+
+# Add model-level statistics
+model_glance <- glance(model)
+
+reg_summary <- data.table(
+  Term = "Weekend (vs Weekday)",
+  Estimate = round(reg_table$estimate, 1),
+  `95% CI` = paste0(
+    round(reg_table$conf.low, 1), ", ",
+    round(reg_table$conf.high, 1)
+  ),
+  `p-value` = round(reg_table$p.value, 3),
+  `R-squared` = round(model_glance$r.squared, 3),
+  `Observations` = model_glance$nobs
+)
+
+kable(
+  reg_summary,
+  caption = "Regression Results: Weekend Effect on Hourly Citi Bike Ridership",
+  align = "c"
+) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  )
+```
+
 ------------------------------------------------------------------------
 
-## Results
+## 4. Results
 
-see if this worked
+### 4.1 Time-of-Day Patterns
 
-------------------------------------------------------------------------
+### 4.2 Day-of-Week Patterns
 
-## Discussion
+### 4.3 Regression Findings
+
+## 5. Discussion
 
 Across cities, bike-share usage typically follows a stable temporal structure, with clear morning and evening peaks during weekdays reflecting commuter behavior, and flatter, midday peaks during weekends indicating leisure-oriented travel. These temporal cycles persist across seasons, suggesting that time-based variables provide a robust baseline for understating ridership variation.
 
 ------------------------------------------------------------------------
 
-## Conclusion
+## 6. Conclusion
