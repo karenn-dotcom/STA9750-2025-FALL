@@ -165,7 +165,7 @@
     "href": "ind_rep.html#literature-and-background",
     "title": "Citi Bike Usage in NYC: Individual Report",
     "section": "Literature and Background",
-    "text": "Literature and Background"
+    "text": "Literature and Background\nBased on previous research on bike-share patterns and ridership, observations are consistent, including weekday commuting peaks and season variation. Multiple studies of Citi Bike data indicate that time-of-day and day-of-week explain a larger share of ridership variation compared to other individual rider characteristics."
   },
   {
     "objectID": "ind_rep.html#data-and-methods",
@@ -179,14 +179,14 @@
     "href": "ind_rep.html#results",
     "title": "Citi Bike Usage in NYC: Individual Report",
     "section": "Results",
-    "text": "Results"
+    "text": "Results\nsee if this worked"
   },
   {
     "objectID": "ind_rep.html#discussion",
     "href": "ind_rep.html#discussion",
     "title": "Citi Bike Usage in NYC: Individual Report",
     "section": "Discussion",
-    "text": "Discussion"
+    "text": "Discussion\nAcross cities, bike-share usage typically follows a stable temporal structure, with clear morning and evening peaks during weekdays reflecting commuter behavior, and flatter, midday peaks during weekends indicating leisure-oriented travel. These temporal cycles persist across seasons, suggesting that time-based variables provide a robust baseline for understating ridership variation."
   },
   {
     "objectID": "ind_rep.html#conclusion",
@@ -194,5 +194,26 @@
     "title": "Citi Bike Usage in NYC: Individual Report",
     "section": "Conclusion",
     "text": "Conclusion"
+  },
+  {
+    "objectID": "ind_rep.html",
+    "href": "ind_rep.html",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "",
+    "text": "Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s denisty, employment concentration, and extensive station coverage.\nOur study addreses the overarching question:\n“Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?”\nAs an initial step toward addressing the broader question, this analysis examines a related sub-question:\n“How do time of day and day of the week affect Citi Bike ridership?”\nTemporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants."
+  },
+  {
+    "objectID": "ind_rep.html#introduction",
+    "href": "ind_rep.html#introduction",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "",
+    "text": "Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s denisty, employment concentration, and extensive station coverage.\nOur study addreses the overarching question:\n“Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?”\nAs an initial step toward addressing the broader question, this analysis examines a related sub-question:\n“How do time of day and day of the week affect Citi Bike ridership?”\nTemporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants."
+  },
+  {
+    "objectID": "ind_rep.html#literatury-review",
+    "href": "ind_rep.html#literatury-review",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "Literatury Review",
+    "text": "Literatury Review\nBased on previous research on bike-share patterns and ridership, observations are consistent, including weekday commuting peaks and season variation. Multiple studies of Citi Bike data indicate that time-of-day and day-of-week explain a larger share of ridership variation compared to other individual rider characteristics.\nAnalyses using Citi Bike data similarly highlight such importance of temporal effects. The NYC Data Science project Inferential Analysis on Citi Bike Ridership applies statistical modeling techniques to identify key determinants of usage to explain a substantial portion of ridership variation. Although this work provides valuable system-wide insights, its overall approach may obscure meaningful spatial differences within NYC, particularly between boroughs with distinct travel behaviors and infrastructure characteristics.\nThe ScienceDirect study reinforces the conclusion about temporal variables. Their inferential analysis shows that the same variables emerge as significant predictos, even when controlling other factors. Once again, this highlights the importance of temporal regularity in bike share usage."
   }
 ]

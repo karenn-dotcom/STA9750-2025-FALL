@@ -1,25 +1,248 @@
 ---
 title: "Citi Bike Usage in NYC: Individual Report"
 author: "Karen Cruz"
+execute:
+  freeze: true
 ---
 
 ## Introduction
 
+Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s denisty, employment concentration, and extensive station coverage.  
+ 
+Our study addreses the overarching question:  
+**“Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?”**
+
+As an initial step toward addressing the broader question, this analysis examines a related sub-question: 
+
+**“How do time of day and day of the week affect Citi Bike ridership?”**
+ 
+Temporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants.  
+
 ---
 
-## Literature and Background 
+## Literatury Review
+
+Based on previous research on bike-share patterns and ridership, observations are consistent, including weekday commuting peaks and season variation. Multiple studies of Citi Bike data indicate that time-of-day and day-of-week explain a larger share of ridership variation compared to other individual rider characteristics.  
+
+Analyses using Citi Bike data similarly highlight such importance of temporal effects. The NYC Data Science project [Inferential Analysis on Citi Bike Ridership](https://nycdatascience.com/blog/student-works/inferential-analysis-on-citi-bike-ridership/) applies statistical modeling techniques to identify key determinants of usage to explain a substantial portion of ridership variation. Although this work provides valuable system-wide insights, its overall approach may obscure meaningful spatial differences within NYC, particularly between boroughs with distinct travel behaviors and infrastructure characteristics.
+
+The [ScienceDirect](https://doi.org/10.1016/j.jtrangeo.2024.103799) study reinforces the conclusion about temporal variables. Their inferential analysis shows that the same variables emerge as significant predictos, even when controlling other factors. Once again, this highlights the importance of temporal regularity in bike share usage.  
 
 ---
 
 ## Data and Methods
 
+```{r}
+#| label: Citi Bike data download
+#| include: false
+## Install packages 
+
+library(data.table)
+library(sf)
+library(utils)
+
+
+## Directories 
+
+raw_dir <- "data/raw"          # for zip files 
+out_dir <- "data/processed"    # where final RDS will be saved
+gis_dir <- "data/gis"          # location of borough shapefile
+
+dir.create(raw_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(gis_dir, showWarnings = FALSE, recursive = TRUE)
+
+
+## increase timeout + stable download 
+
+options(timeout = max(1200, getOption("timeout")))          
+options(download.file.method = "libcurl")                   
+
+
+## Months + base URL
+
+months <- format(
+  seq(as.Date("2024-10-01"), as.Date("2025-10-01"), by = "month"),
+  "%Y%m"
+)
+
+base_url <- "https://s3.amazonaws.com/tripdata"
+
+## 1) Download and prepare Manhattan GIS polygon 
+
+# NYC DCP borough boundary URL + store path of borough 
+borough_url <- "https://www.nyc.gov/assets/planning/download/zip/data-maps/open-data/nybb_16a.zip"
+borough_zip <- file.path(gis_dir, "nyc_boroughs.zip")
+
+# Download only if missing
+if (!file.exists(borough_zip)) {
+  message("Downloading NYC borough boundaries shapefile...")
+  download.file(borough_url, borough_zip, mode = "wb")
+} else {
+  message("Borough ZIP already exists — skipping download.")
+}
+
+# Unzip only if no shapefile exists
+existing_shp <- list.files(
+  gis_dir, 
+  pattern = "\\.shp$", 
+  recursive = TRUE,
+  full.names = TRUE
+) 
+
+if (length(existing_shp) == 0) {
+  message("Unzipping borough shapefile...")
+  unzip(borough_zip, exdir = gis_dir)
+} else {
+  message("Shapefile already present — skipping unzip.")
+}
+
+shp_file <- list.files(
+  gis_dir,
+  pattern = "\\.shp$",
+  recursive = TRUE,
+  full.names = TRUE
+)[1]
+
+boroughs <- st_read(shp_file, quiet = TRUE)
+boroughs <- st_transform(boroughs, 4326)
+
+manhattan_poly <- boroughs[boroughs$BoroName == "Manhattan", ]
+
+## 2) Download Citi Bike data 
+
+download_zip <- function(m) {
+  zip_name <- sprintf("%s-citibike-tripdata.zip", m)
+  zip_path <- file.path(raw_dir, zip_name)
+  zip_url  <- paste0(base_url, "/", zip_name)
+  
+  if (file.exists(zip_path)) {
+    message("ZIP exists, skipping download: ", zip_name)
+    return(zip_path)
+  }
+  
+  message("Downloading ZIP once: ", zip_name)
+  download.file(zip_url, zip_path, mode = "wb")
+  
+  return(zip_path)
+}
+
+## 3) Month processor with GIS-based Manhattan filter 
+
+process_month_manhattan <- function(m, delete_zip = TRUE) {
+  
+  month_rds <- file.path(out_dir, paste0("manhattan_", m, ".rds"))
+  
+  # SKIP if processed already
+  if (file.exists(month_rds)) {
+    message("Already processed — loading: ", m)
+    return(readRDS(month_rds))
+  }
+  
+  zip_path <- download_zip(m)
+  
+  message("\n=== Processing month: ", m, " ===")
+  
+  # TEMP UNZIP (AUTOMATICALLY CLEANED)
+  tmpdir <- file.path(tempdir(), m)
+  dir.create(tmpdir, showWarnings = FALSE)
+  unzip(zip_path, exdir = tmpdir)
+  
+  csv_files <- list.files(tmpdir, pattern = "\\.csv$", full.names = TRUE)
+  if (length(csv_files) == 0) {
+    unlink(tmpdir, recursive = TRUE)
+    stop("No CSV files found in ZIP for month ", m)
+  }
+  
+  # PROCESS ALL CSVs
+  month_list <- vector("list", length(csv_files))
+  
+  for (i in seq_along(csv_files)) {
+    csv <- csv_files[i]
+    
+    dt <- fread(csv, select = c(
+      "ride_id","rideable_type","started_at","ended_at",
+      "start_station_name","start_station_id",
+      "end_station_name","end_station_id",
+      "start_lat","start_lng","end_lat","end_lng",
+      "member_casual"
+    ))
+    
+    dt[, started_at := as.POSIXct(started_at, tz = "America/New_York")]
+    dt[, ended_at   := as.POSIXct(ended_at,   tz = "America/New_York")]
+    
+    # STRICT filter — prevents 202409 rides from being included 
+    dt <- dt[started_at >= as.POSIXct("2024-10-01 00:00:00", tz = "America/New_York")]
+    
+    # Date/hour fields
+    dt[, date := as.Date(started_at)]
+    dt[, hour := as.integer(format(started_at, "%H"))]
+    
+    # Remove missing coords
+    dt <- dt[!is.na(start_lat) & !is.na(start_lng)]
+    
+    # Spatial filter
+    dt_sf <- st_as_sf(dt, coords = c("start_lng", "start_lat"), crs = 4326, remove = FALSE)
+    inside <- st_within(dt_sf, manhattan_poly, sparse = FALSE)[,1]
+    
+    dt_man <- as.data.table(st_drop_geometry(dt_sf[inside, ]))
+    month_list[[i]] <- dt_man
+  }
+  
+  month_all <- rbindlist(month_list, use.names = TRUE, fill = TRUE)
+  
+  # SAVE (restart safety)
+  saveRDS(month_all, month_rds)
+  message("Saved month RDS: ", month_rds)
+  
+  # REMOVE TEMPORARY UNZIP
+  unlink(tmpdir, recursive = TRUE)
+  
+  # DELETE ZIP FILE AFTER PROCESSING (MAX STORAGE SAVINGS)
+  if (delete_zip) {
+    file.remove(zip_path)
+    message("Deleted ZIP to save space: ", basename(zip_path))
+  }
+  
+  return(month_all)
+}
+
+## 4) Run over all months 
+
+all_months_list <- vector("list", length(months))
+
+for (i in seq_along(months)) {
+  m <- months[i]
+  month_all <- process_month_manhattan(m)
+  all_months_list[[i]] <- month_all
+  rm(month_all)
+  gc()
+}
+
+all_months_list <- lapply(months, process_month_manhattan)
+
+final_path <- file.path(out_dir, "citibike_manhattan_all_202410_202510.rds")
+
+if (!file.exists(final_path)) {
+  final <- rbindlist(all_months_list, use.names = TRUE, fill = TRUE)
+  saveRDS(final, final_path)
+  message("Saved FINAL combined dataset.")
+} else {
+  message("Final dataset already exists — skipping rebuild.")
+}
+```
+
 --- 
 
 ## Results 
 
+see if this worked
+
 ---
 
 ## Discussion
+
+Across cities, bike-share usage typically follows a stable temporal structure, with clear morning and evening peaks during weekdays reflecting commuter behavior, and flatter, midday peaks during weekends indicating leisure-oriented travel.  These temporal cycles persist across seasons, suggesting that time-based variables provide a robust baseline for understating ridership variation.  
 
 --- 
 
