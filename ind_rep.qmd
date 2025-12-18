@@ -7,7 +7,7 @@ execute:
 
 ## 1. Introduction
 
-Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s density, employment concentration, and extensive station coverage.
+Among the multiple systems of transportation, bike-share systems have become a vital component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the borough's density, employment concentration, and extensive station coverage.
 
 Our study addresses the overarching question:
 
@@ -239,7 +239,7 @@ if (!file.exists(final_path)) {
 
 This study uses monthly trip-level data from October 2024 through October 2025. The dataset provides detailed records including the trip's start time, station information, geographic coordinates, and rider classification (member or casual). It offers high temporal resolution and comprehensive coverage of bikeshare activity across New York City, making them well suited for analyzing short-term incurring temporal patterns in ridership.
 
-The analysis of the specific question focuses specifically on trip start times, as this best reflects rider decision-making and demand for bike-share services. Using such trip-level data allows for more flexible aggregation across varying temporal scales while preserving the underlying structure of usage patterns.
+The analysis of the specific question focuses specifically on trip start times, as this best reflects rider decision-making and demand for bikeshare services. Using such trip-level data allows for more flexible aggregation across varying temporal scales while preserving the underlying structure of usage patterns.
 
 ### 3.2 Data Processing
 
@@ -266,7 +266,7 @@ citibike[, wknd := ifelse(dow %in% c("Sat", "Sun"), "Weekend", "Weekday")]
 
 Several processing steps were applied to prepare the Citi Bike data for analysis. First, trips were filtered to only include rides starting in Manhattan. By using spatial containment with borough boundary shape-files, it ensured that only trips with starting coordinated falling within the Manhattan borough polygon were retained. This is a crucial step to focus on Manhattan and remove any trips originating in other boroughs.
 
-To further restrict the defined study period, September 2024 had to be manually removed. Although the study period starts on October 2024, September 2024 appeared as a spillover record due late-night and delayed trips included in October 2024 Citi Bike release. Since the month was incomplete, it was excluded in order to maintain temporal consistency.  
+To further restrict the defined study period, September 2024 had to be manually removed. Although the study period starts on October 2024, September 2024 appeared as a spillover record due late-night and delayed trips included in October 2024 Citi Bike release. Since the month was incomplete, it was excluded to maintain temporal consistency.
 
 From the cleaned data, multiple temporal variables were created:
 
@@ -290,7 +290,9 @@ Aggregating trips to hourly and daily counts, reducing noise inherent individual
 
 ```{r}
 #| label: Weekday vs Weekend Hourly Patterns
-#| echo: false
+#| echo: true
+#| message: false
+#| warning: false
 
 hour_wknd <- citibike[
   ,
@@ -318,13 +320,14 @@ ggplot(hour_wknd, aes(x = hour, y = N, color = wknd)) +
   )
 ```
 
-**Figure 1. Weekdays vs. Weekend Patterns**.
+**Figure 1. Weekdays vs. Weekend Patterns.**
 
 Hourly ridership was compared between weekdays and weekends to distinguish commute-oriented usage from leisure-oriented travel, revealing weekday peaks and flatter weekend trends.
 
 ```{r}
 #| label: Heatmap
-#| echo: false
+#| echo: true
+#| message: false
 #| warning: false
 heatmap_dt <- citibike[
   ,
@@ -351,7 +354,10 @@ ggplot(heatmap_dt, aes(x = hour, y = dow, fill = N)) +
 This heat map was used to visualize hourly and weekly ridership intensity for Manhattan. Weekends display strong daytime and commute peaks, while weekends exhibit flatter, more evenly distributed ridership patterns consistent with non-commuting travel.
 
 ```{r}
-#| echo: false
+#| label: Regression
+#| echo: true
+#| message: false
+#| warning: false
 
 hourly_counts <- citibike[
   ,
@@ -500,12 +506,15 @@ ggplot(coef_df, aes(x = estimate, y = term)) +
   theme(plot.title = element_markdown())
 ```
 
-**Figure 3. Regression Coefficients for Hour-of-day and Weekend Effects**.
+**Figure 3. Regression Coefficients for Hour-of-day and Weekend Effects.**
 
 Coefficient estimated from a linear regression of hourly Citi Bike trip counts in Manhattan, using hour-of-day fixed effects and a weekend indicator.
 
 ```{r}
-#| echo: false
+#| label: regression table
+#| echo: true
+#| message: false
+#| warning: false
 # Tidy regression output
 reg_table <- broom::tidy(model, conf.int = TRUE)
 
@@ -539,6 +548,10 @@ kable(
   )
 ```
 
+**Table 1. Summary Statistics.**
+
+Highlights differences between weekend and weekday usage in Manhattan.
+
 ------------------------------------------------------------------------
 
 ## 4. Results
@@ -553,14 +566,24 @@ kable(
 
 ## 5. Discussion
 
+This study analysis showed that Citi Bike usage in Manhattan is strongly shaped by temporal factors, time of day and day of the week, with various visualizations, summary statistics, and modeling approaches. Instead of treating time like a secondary control variable, these results indicate that both factors are fundamental drivers of bike share demand. Throughout the study period, the results remained consistent and stable, suggesting that ridership behavior is governed by more recurring daily routines rather than short-term fluctuations.
+
+Weekday usage trends closely mirror standard commuting patterns, highlighting Citi Bike’s role as a practical transportation option within Manhattan’s dense urban landscape. The indications of strong daytime usage and commuting-related peaks support the claim that riders choose this mode of transportation to rely on Citi Bike for predictable, routine travel. As we have noted earlier, weekend ridership displays a different temporal profile in comparison. It is marked by lower ridership levels and a higher concentration of activity during a limited number of daytime hours. This reveals a shift from schedule driven travel to more discretionary use.
+
+The regression findings reinforce the noted interpretations by isolating the independent effect weekend status has, while also controlling hour-of-the-day variance. The consistent negative weekend effect implies that temporal context—whether a trip occurs on a weekday or weekend—alters ridership levels even at identical hours. Furthermore, the combined use of descriptive and inferential methods enhances confidence in these conclusions by showing consistency across multiple analytic approaches.
+
+Overall, the analysis focuses on the importance of modeling time when interpreting bike share systems. If hour-of-day and time-of-day or weekend/weekday distinctions are removed from the model, it will reduce the explanatory power of models and obscure any meaningful behavioral differences. These findings carry significant implications for transportation planning, operational strategies, and demand forecasting for the urban core that Manhattan is.
+
 ------------------------------------------------------------------------
 
 ## 6. Limitations
 
-The focus of this study is Manhattan exclusively without generalizing the findings to other boroughs with different land-use patterns. Additionally, the purpose of each individual trip cannot be derived from the Citi Bike data, requiring us to infer commuting and leisure behavior. While aggregating trips to hourly and daily counts is necessary for visualization and modeling, it can obscure other detailed temporal dynamics that are present in individual trip records. Relying on a single year of data ultimately limits the ability to assess long-term trends or any structural changes in Citi Bike usage over time. While the research and analysis are appropriate for this study, our potential future work could examine such factors.
+The focus of this study is Manhattan exclusively without generalizing the findings to other boroughs with different land-use patterns. Additionally, the purpose of each individual trip cannot be derived from the Citi Bike data, requiring us to infer commuting and leisure behavior. While aggregating trips to hourly and daily counts is necessary for visualization and modeling, it can obscure other detailed temporal dynamics that are present in individual trip records. Relying on a single year of data ultimately limits the ability to assess long-term trends or any structural changes in Citi Bike usage over time.
+
+Despite these limitations, the findings provide evidence that these variables play a central role in shaping bike usage. While the research and analysis are appropriate for this study, our potential future work will incorporate other data to further expand the analysis to other boroughs.
 
 ------------------------------------------------------------------------
 
 ## 7. Conclusion
 
-Across cities, bike-share usage typically follows a stable temporal structure. Weekday ridership is driven by routine commuting patterns, while weekend usage reflects leisure patterns with lower, more discretionary demand. These results demonstrate that time-based variables are essential for understanding and modeling ridership variation. 
+Across cities, bike-share usage typically follows a stable temporal structure. Weekday ridership is driven by routine commuting patterns, while weekend usage reflects leisure patterns with lower, more discretionary demand. These results demonstrate that time-based variables are essential for understanding and modeling ridership variation.
