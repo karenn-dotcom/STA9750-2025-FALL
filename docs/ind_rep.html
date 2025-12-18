@@ -152,7 +152,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#regression-findings" id="toc-regression-findings" class="nav-link" data-scroll-target="#regression-findings">4.3 Regression Findings</a></li>
   </ul></li>
   <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">5. Discussion</a></li>
-  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">6. Conclusion</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">6. Limitations</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">7. Conclusion</a></li>
   </ul>
 </nav>
     </div>
@@ -188,10 +189,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
 <p>Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s density, employment concentration, and extensive station coverage.</p>
 <p>Our study addresses the overarching question:</p>
-<p><br>
-“<em>Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?</em>”</p>
+<blockquote class="blockquote">
+<p><em>Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?</em></p>
+</blockquote>
 <p>As an initial step toward addressing the broader question, this analysis examines a related sub-question:</p>
+<blockquote class="blockquote">
 <p><strong>“How do time of day and day of the week affect Citi Bike ridership?”</strong></p>
+</blockquote>
 <p>Temporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants.</p>
 <hr>
 </section>
@@ -360,15 +364,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="regression-findings" class="level3">
 <h3 class="anchored" data-anchor-id="regression-findings">4.3 Regression Findings</h3>
+<hr>
 </section>
 </section>
 <section id="discussion" class="level2">
 <h2 class="anchored" data-anchor-id="discussion">5. Discussion</h2>
-<p>Across cities, bike-share usage typically follows a stable temporal structure, with clear morning and evening peaks during weekdays reflecting commuter behavior, and flatter, midday peaks during weekends indicating leisure-oriented travel. These temporal cycles persist across seasons, suggesting that time-based variables provide a robust baseline for understating ridership variation.</p>
+<hr>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">6. Limitations</h2>
+<p>The focus of this study is Manhattan exclusively without generalizing the findings to other boroughs with different land-use patterns. Additionally, the purpose of each individual trip cannot be derived from the Citi Bike data, requiring us to infer commuting and leisure behavior. While aggregating trips to hourly and daily counts is necessary for visualization and modeling, it can obscure other detailed temporal dynamics that are present in individual trip records. Relying on a single year of data ultimately limits the ability to assess long-term trends or any structural changes in Citi Bike usage over time. While the research and analysis are appropriate for this study, our potential future work could examine such factors.</p>
 <hr>
 </section>
 <section id="conclusion" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion">6. Conclusion</h2>
+<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
+<p>Across cities, bike-share usage typically follows a stable temporal structure. Weekday ridership is driven by routine commuting patterns, while weekend usage reflects leisure patterns with lower, more discretionary demand. These results demonstrate that time-based variables are essential for understanding and modeling ridership variation.</p>
 
 
 </section>

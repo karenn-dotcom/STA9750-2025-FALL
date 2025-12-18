@@ -186,28 +186,28 @@
     "href": "ind_rep.html#discussion",
     "title": "Citi Bike Usage in NYC: Individual Report",
     "section": "5. Discussion",
-    "text": "5. Discussion\nAcross cities, bike-share usage typically follows a stable temporal structure, with clear morning and evening peaks during weekdays reflecting commuter behavior, and flatter, midday peaks during weekends indicating leisure-oriented travel. These temporal cycles persist across seasons, suggesting that time-based variables provide a robust baseline for understating ridership variation."
+    "text": "5. Discussion"
   },
   {
     "objectID": "ind_rep.html#conclusion",
     "href": "ind_rep.html#conclusion",
     "title": "Citi Bike Usage in NYC: Individual Report",
-    "section": "6. Conclusion",
-    "text": "6. Conclusion"
+    "section": "7. Conclusion",
+    "text": "7. Conclusion\nAcross cities, bike-share usage typically follows a stable temporal structure. Weekday ridership is driven by routine commuting patterns, while weekend usage reflects leisure patterns with lower, more discretionary demand. These results demonstrate that time-based variables are essential for understanding and modeling ridership variation."
   },
   {
     "objectID": "ind_rep.html",
     "href": "ind_rep.html",
     "title": "Citi Bike Usage in NYC: Individual Report",
     "section": "",
-    "text": "Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s density, employment concentration, and extensive station coverage.\nOur study addresses the overarching question:\n\n“Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?”\nAs an initial step toward addressing the broader question, this analysis examines a related sub-question:\n“How do time of day and day of the week affect Citi Bike ridership?”\nTemporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants."
+    "text": "Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s density, employment concentration, and extensive station coverage.\nOur study addresses the overarching question:\n\nAmong time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?\n\nAs an initial step toward addressing the broader question, this analysis examines a related sub-question:\n\n“How do time of day and day of the week affect Citi Bike ridership?”\n\nTemporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants."
   },
   {
     "objectID": "ind_rep.html#introduction",
     "href": "ind_rep.html#introduction",
     "title": "Citi Bike Usage in NYC: Individual Report",
     "section": "",
-    "text": "Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s density, employment concentration, and extensive station coverage.\nOur study addresses the overarching question:\n\n“Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?”\nAs an initial step toward addressing the broader question, this analysis examines a related sub-question:\n“How do time of day and day of the week affect Citi Bike ridership?”\nTemporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants."
+    "text": "Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s density, employment concentration, and extensive station coverage.\nOur study addresses the overarching question:\n\nAmong time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?\n\nAs an initial step toward addressing the broader question, this analysis examines a related sub-question:\n\n“How do time of day and day of the week affect Citi Bike ridership?”\n\nTemporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants."
   },
   {
     "objectID": "ind_rep.html#literatury-review",
@@ -222,5 +222,12 @@
     "title": "Citi Bike Usage in NYC: Individual Report",
     "section": "2. Literary Review",
     "text": "2. Literary Review\nBased on previous research on bike-share patterns and ridership, observations are consistent, including weekday commuting peaks and season variation. Multiple studies of Citi Bike data indicate that time-of-day and day-of-week explain a larger share of ridership variation compared to other individual rider characteristics.\nAnalyses using Citi Bike data similarly highlight such importance of temporal effects. The NYC Data Science project Inferential Analysis on Citi Bike Ridership applies statistical modeling techniques to identify key determinants of usage to explain a substantial portion of ridership variation. Although this work provides valuable system-wide insights, its overall approach may obscure meaningful spatial differences within NYC, particularly between boroughs with distinct travel behaviors and infrastructure characteristics.\nThe ScienceDirect study reinforces the conclusion about temporal variables. Their inferential analysis shows that the same variables emerge as significant predictors, even when controlling other factors. Once again, this highlights the importance of temporal regularity in bike share usage."
+  },
+  {
+    "objectID": "ind_rep.html#limitations",
+    "href": "ind_rep.html#limitations",
+    "title": "Citi Bike Usage in NYC: Individual Report",
+    "section": "6. Limitations",
+    "text": "6. Limitations\nThe focus of this study is Manhattan exclusively without generalizing the findings to other boroughs with different land-use patterns. Additionally, the purpose of each individual trip cannot be derived from the Citi Bike data, requiring us to infer commuting and leisure behavior. While aggregating trips to hourly and daily counts is necessary for visualization and modeling, it can obscure other detailed temporal dynamics that are present in individual trip records. Relying on a single year of data ultimately limits the ability to assess long-term trends or any structural changes in Citi Bike usage over time. While the research and analysis are appropriate for this study, our potential future work could examine such factors."
   }
 ]
