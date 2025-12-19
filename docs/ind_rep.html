@@ -185,16 +185,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<div class="callout callout-style-default callout-note callout-titled" title="Abstract">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Abstract
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Understanding the most important factors that drive bike-share usage is critical to understand for urban dense areas like Manhattan. This study examines how temporal factors, time-of-day and day-of-week, affect Citi Bike ridership in the area, with a broader objective of identifying the which factor(s) are most essential among weather, time, location, and rider characteristics. Using Citi-Bike data from October 2024 to October 2025, the data was processed and filtered spatially to Manhattan. The analysis will introduce visualizations and modelings to suggest that temporal factors form the baseline of demand for Citi Bike usage in the selected borough.</p>
+</div>
+</div>
+<hr>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
-<p>Among the multiple systems of transportation, bike-share systems have become a central component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the boruough’s density, employment concentration, and extensive station coverage.</p>
+<p>Among the multiple systems of transportation, bike-share systems have become a vital component of urban networks. Offering flexible, low-emission travel options for commuters and recreational users in New York City, Citi Bike has emerged as the largest bike-share system in the U.S., Manhattan accounting a large share of total ridership due to the borough’s density, employment concentration, and extensive station coverage.</p>
 <p>Our study addresses the overarching question:</p>
 <blockquote class="blockquote">
 <p><em>Among time, location, and other rider characteristics, which variables are the most important drivers of Citi Bike trip volume in Manhattan?</em></p>
 </blockquote>
-<p>As an initial step toward addressing the broader question, this analysis examines a related sub-question:</p>
+<p>As an initial step toward addressing the broader question, the analysis I am tasked to analyze is a related sub-question:</p>
 <blockquote class="blockquote">
-<p><strong>“How do time of day and day of the week affect Citi Bike ridership?”</strong></p>
+<p><strong>How do time of day and day of the week affect Citi Bike ridership?</strong></p>
 </blockquote>
 <p>Temporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants.</p>
 <hr>
@@ -203,7 +217,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="literary-review">2. Literary Review</h2>
 <p>Based on previous research on bike-share patterns and ridership, observations are consistent, including weekday commuting peaks and season variation. Multiple studies of Citi Bike data indicate that time-of-day and day-of-week explain a larger share of ridership variation compared to other individual rider characteristics.</p>
 <p>Analyses using Citi Bike data similarly highlight such importance of temporal effects. The NYC Data Science project <a href="https://nycdatascience.com/blog/student-works/inferential-analysis-on-citi-bike-ridership/">Inferential Analysis on Citi Bike Ridership</a> applies statistical modeling techniques to identify key determinants of usage to explain a substantial portion of ridership variation. Although this work provides valuable system-wide insights, its overall approach may obscure meaningful spatial differences within NYC, particularly between boroughs with distinct travel behaviors and infrastructure characteristics.</p>
-<p>The <a href="https://doi.org/10.1016/j.jtrangeo.2024.103799">ScienceDirect</a> study reinforces the conclusion about temporal variables. Their inferential analysis shows that the same variables emerge as significant predictors, even when controlling other factors. Once again, this highlights the importance of temporal regularity in bike share usage.</p>
+<p>The <a href="https://doi.org/10.1016/j.jtrangeo.2024.103799">ScienceDirect</a> study reinforces the conclusion about temporal variables. Their inferential analysis shows that the same variables emerge as significant predictors, even when controlling other factors such as weather, air control, visual quality, and functional factors. Once again, this highlights the importance of temporal regularity in bike share usage.</p>
 <hr>
 </section>
 <section id="data-and-methods" class="level2">
@@ -211,7 +225,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="data-sources" class="level3">
 <h3 class="anchored" data-anchor-id="data-sources">3.1 Data Sources</h3>
 <p><strong>Citi Bike Trip Data</strong></p>
-<p>This study uses monthly trip-level data from October 2024 through October 2025. The dataset provides detailed records including the trip’s start time, station information, geographic coordinates, and rider classification (member or casual). It offers high temporal resolution and comprehensive coverage of bikeshare activity across New York City, making them well suited for analyzing short-term incurring temporal patterns in ridership.</p>
+<p>This study uses monthly trip-level data from October 2024 through October 2025. The dataset provides detailed records including the trip’s start time, station information, geographic coordinates, and rider classification (member or casual). It offers high temporal resolution and comprehensive coverage of bike-share activity across New York City, making them well suited for analyzing short-term incurring temporal patterns in ridership.</p>
 <p>The analysis of the specific question focuses specifically on trip start times, as this best reflects rider decision-making and demand for bike-share services. Using such trip-level data allows for more flexible aggregation across varying temporal scales while preserving the underlying structure of usage patterns.</p>
 </section>
 <section id="data-processing" class="level3">
@@ -239,7 +253,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 <p>Several processing steps were applied to prepare the Citi Bike data for analysis. First, trips were filtered to only include rides starting in Manhattan. By using spatial containment with borough boundary shape-files, it ensured that only trips with starting coordinated falling within the Manhattan borough polygon were retained. This is a crucial step to focus on Manhattan and remove any trips originating in other boroughs.</p>
-<p>To further restrict the defined study period, September 2024 had to be manually removed. Although the study period starts on October 2024, September 2024 appeared as a spillover record due late-night and delayed trips included in October 2024 Citi Bike release. Since the month was incomplete, it was excluded in order to maintain temporal consistency. &nbsp;</p>
+<p>To further restrict the defined study period, September 2024 had to be manually removed. Although the study period starts on October 2024, September 2024 appeared as a spillover record due late-night and delayed trips included in October 2024 Citi Bike release. Since the month was incomplete, it was excluded to maintain temporal consistency.</p>
 <p>From the cleaned data, multiple temporal variables were created:</p>
 <ul>
 <li><p>Hour of Day (hour)</p></li>
@@ -256,6 +270,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="exploratory-data-analysis-eda" class="level4">
 <h4 class="anchored" data-anchor-id="exploratory-data-analysis-eda">Exploratory Data Analysis (EDA)</h4>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>hour_wknd <span class="ot">&lt;-</span> citibike[</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  .(<span class="at">N =</span> .N),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  by <span class="ot">=</span> .(month, hour, wknd)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(hour_wknd, <span class="fu">aes</span>(<span class="at">x =</span> hour, <span class="at">y =</span> N, <span class="at">color =</span> wknd)) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> month) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"**Hourly Ridership Patterns: Weekday vs Weekend**"</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Hour"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Trips"</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">""</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Data from Citi Bike (Manhattan starts only)"</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> comma) <span class="sc">+</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">23</span>, <span class="at">by =</span> <span class="dv">3</span>)) <span class="sc">+</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.spacing =</span> <span class="fu">unit</span>(<span class="dv">1</span>, <span class="st">"lines"</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -264,9 +305,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p><strong>Figure 1. Weekdays vs.&nbsp;Weekend Patterns</strong>.</p>
+<p><strong>Figure 1. Weekdays vs.&nbsp;Weekend Patterns.</strong></p>
 <p>Hourly ridership was compared between weekdays and weekends to distinguish commute-oriented usage from leisure-oriented travel, revealing weekday peaks and flatter weekend trends.</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>heatmap_dt <span class="ot">&lt;-</span> citibike[</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  .(<span class="at">N =</span> .N),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  by <span class="ot">=</span> .(dow, hour)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(heatmap_dt, <span class="fu">aes</span>(<span class="at">x =</span> hour, <span class="at">y =</span> dow, <span class="at">fill =</span> N)) <span class="sc">+</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>() <span class="sc">+</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"**Hourly Ridership by Day of Week**"</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Hour of Day"</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">""</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Trips"</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">labels =</span> comma) <span class="sc">+</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">23</span>, <span class="dv">3</span>)) <span class="sc">+</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_markdown</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -278,6 +340,117 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Figure 2. Hour x Day-of-Week Heat Map.</strong></p>
 <p>This heat map was used to visualize hourly and weekly ridership intensity for Manhattan. Weekends display strong daytime and commute peaks, while weekends exhibit flatter, more evenly distributed ridership patterns consistent with non-commuting travel.</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>hourly_counts <span class="ot">&lt;-</span> citibike[</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  .N,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  by <span class="ot">=</span> .(date, hour, wknd)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>hourly_counts[, peak <span class="sc">:</span><span class="er">=</span> hour <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">7</span><span class="sc">:</span><span class="dv">9</span>, <span class="dv">16</span><span class="sc">:</span><span class="dv">18</span>)]</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>avg_hourly <span class="ot">&lt;-</span> hourly_counts[</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  .(<span class="at">avg_hourly_trips =</span> <span class="fu">mean</span>(N)),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  by <span class="ot">=</span> wknd</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>weekday_avg <span class="ot">&lt;-</span> avg_hourly[wknd <span class="sc">==</span> <span class="st">"Weekday"</span>, avg_hourly_trips]</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>avg_hourly[</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  pct_diff_vs_weekday <span class="sc">:</span><span class="er">=</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    (avg_hourly_trips <span class="sc">-</span> weekday_avg) <span class="sc">/</span> weekday_avg <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>peak_stats <span class="ot">&lt;-</span> hourly_counts[</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  .(<span class="at">avg_trips =</span> <span class="fu">mean</span>(N)),</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  by <span class="ot">=</span> .(wknd, peak)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>peak_stats[, peak <span class="sc">:</span><span class="er">=</span> <span class="fu">ifelse</span>(peak, <span class="st">"Peak Hours"</span>, <span class="st">"Off-Peak Hours"</span>)]</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>peak_share <span class="ot">&lt;-</span> hourly_counts[</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  .(<span class="at">total_trips =</span> <span class="fu">sum</span>(N)),</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  by <span class="ot">=</span> .(wknd, peak)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>][</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  share_of_trips <span class="sc">:</span><span class="er">=</span> total_trips <span class="sc">/</span> <span class="fu">sum</span>(total_trips),</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  by <span class="ot">=</span> wknd</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>][</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>  peak <span class="sc">==</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  .(wknd, <span class="at">share_of_peak_trips =</span> share_of_trips)</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>summary_table <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  avg_hourly[, .(wknd, avg_hourly_trips, pct_diff_vs_weekday)],</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  peak_stats[peak <span class="sc">==</span> <span class="st">"Peak Hours"</span>, .(wknd, <span class="at">peak_avg_trips =</span> avg_trips)],</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>  <span class="at">by =</span> <span class="st">"wknd"</span></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>summary_table <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  summary_table,</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>  peak_share,</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>  <span class="at">by =</span> <span class="st">"wknd"</span></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>summary_table <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>  avg_hourly[, .(wknd, avg_hourly_trips, pct_diff_vs_weekday)],</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  peak_stats[peak <span class="sc">==</span> <span class="st">"Peak Hours"</span>, .(wknd, <span class="at">peak_avg_trips =</span> avg_trips)],</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>  <span class="at">by =</span> <span class="st">"wknd"</span></span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>summary_table <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>  summary_table,</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>  peak_share,</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>  <span class="at">by =</span> <span class="st">"wknd"</span></span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>summary_table[</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>  ,</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_hourly_trips =</span> <span class="fu">round</span>(avg_hourly_trips),</span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>    <span class="at">pct_diff_vs_weekday =</span> <span class="fu">round</span>(pct_diff_vs_weekday, <span class="dv">1</span>),</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>    <span class="at">peak_avg_trips =</span> <span class="fu">round</span>(peak_avg_trips),</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    <span class="at">share_of_peak_trips =</span> <span class="fu">round</span>(share_of_peak_trips <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>)</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>summary_table_pretty <span class="ot">&lt;-</span> <span class="fu">copy</span>(summary_table)</span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a><span class="co"># Rename columns for readability</span></span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a><span class="fu">setnames</span>(</span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>  summary_table_pretty,</span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>  <span class="at">old =</span> <span class="fu">c</span>(<span class="st">"wknd"</span>,</span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>          <span class="st">"avg_hourly_trips"</span>,</span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>          <span class="st">"pct_diff_vs_weekday"</span>,</span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>          <span class="st">"peak_avg_trips"</span>,</span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>          <span class="st">"share_of_peak_trips"</span>),</span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>  <span class="at">new =</span> <span class="fu">c</span>(<span class="st">"Day Type"</span>,</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>          <span class="st">"Average Hourly Trips"</span>,</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>          <span class="st">"% Difference vs Weekday"</span>,</span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>          <span class="st">"Peak-Hour Avg Trips"</span>,</span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>          <span class="st">"Share of Trips During Peak Hours (%)"</span>)</span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(</span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>  summary_table_pretty,</span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">format =</span> <span class="st">"html"</span>,</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">1</span>,</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Summary of Hourly Citi Bike Ridership by Day Type (Manhattan)"</span></span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(</span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>    <span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>),</span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>    <span class="at">full_width =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="st">"center"</span></span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small">
 <caption>Summary of Hourly Citi Bike Ridership by Day Type (Manhattan)</caption>
@@ -308,7 +481,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>wkdy_avg <span class="ot">&lt;-</span> summary_table<span class="sc">$</span>avg_hourly_trips[<span class="dv">1</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>wknd_avg <span class="ot">&lt;-</span> summary_table<span class="sc">$</span>avg_hourly_trips[<span class="dv">2</span>]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>pct_diff <span class="ot">&lt;-</span> summary_table<span class="sc">$</span>pct_diff_vs_weekday[<span class="dv">2</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>wknd_share <span class="ot">&lt;-</span> summary_table<span class="sc">$</span>share_of_peak_trips[<span class="dv">2</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
+<p><strong>Table 1. Summary Statistics.</strong></p>
+<p>Highlights differences between weekend and weekday usage in Manhattan.</p>
 </section>
 <section id="regression-modeling" class="level4">
 <h4 class="anchored" data-anchor-id="regression-modeling">Regression Modeling</h4>
@@ -321,9 +503,43 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p><strong>Figure 3. Regression Coefficients for Hour-of-day and Weekend Effects</strong>.</p>
+<p><strong>Figure 3. Regression Coefficients for Hour-of-day and Weekend Effects.</strong></p>
 <p>Coefficient estimated from a linear regression of hourly Citi Bike trip counts in Manhattan, using hour-of-day fixed effects and a weekend indicator.</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tidy regression output</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>reg_table <span class="ot">&lt;-</span> broom<span class="sc">::</span><span class="fu">tidy</span>(model, <span class="at">conf.int =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Drop everything except weekend effect</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>reg_table <span class="ot">&lt;-</span> reg_table[reg_table<span class="sc">$</span>term <span class="sc">==</span> <span class="st">"wkndWeekend"</span>, ]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Add model-level statistics</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>model_glance <span class="ot">&lt;-</span> <span class="fu">glance</span>(model)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>reg_summary <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Term =</span> <span class="st">"Weekend (vs Weekday)"</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">round</span>(reg_table<span class="sc">$</span>estimate, <span class="dv">1</span>),</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(reg_table<span class="sc">$</span>conf.low, <span class="dv">1</span>), <span class="st">", "</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(reg_table<span class="sc">$</span>conf.high, <span class="dv">1</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">p-value</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(reg_table<span class="sc">$</span>p.value, <span class="dv">3</span>),</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">R-squared</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(model_glance<span class="sc">$</span>r.squared, <span class="dv">3</span>),</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Observations</span><span class="st">`</span> <span class="ot">=</span> model_glance<span class="sc">$</span>nobs</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  reg_summary,</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Regression Results: Weekend Effect on Hourly Citi Bike Ridership"</span>,</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">align =</span> <span class="st">"c"</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>),</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">full_width =</span> <span class="cn">FALSE</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small">
 <caption>Regression Results: Weekend Effect on Hourly Citi Bike Ridership</caption>
@@ -349,7 +565,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>r2<span class="ot">&lt;-</span> reg_summary<span class="sc">$</span><span class="st">`</span><span class="at">R-squared</span><span class="st">`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
+<p><strong>Table 2. Regression Table Results.</strong> Estimate the effect of weekend status hourly Citi Bike ridership in Manhattan, while controlling for hour-of-day fixed effects.</p>
 <hr>
 </section>
 </section>
@@ -358,22 +579,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="results">4. Results</h2>
 <section id="time-of-day-patterns" class="level3">
 <h3 class="anchored" data-anchor-id="time-of-day-patterns">4.1 Time-of-Day Patterns</h3>
+<p>Analyzing Figure 1, across all months, weekday ridership displays a consistent bi-modal structure, with pronounced peaks during the morning and afternoon commuting periods. These peaks are most evident between 7 to 9 AM and 4 to 6 PM, reflecting commute-driven demand. In contrast, weekend ridership levels are low in magnitude and follow a smoother trend throughout the day, concentrating on the higher ridership levels during 12 to 4 PM. While overall ridership levels vary seasonally, the relative shape of weekday and weekend hourly patterns remain stable throughout the year, suggesting a consistent temporal structure.</p>
 </section>
 <section id="day-of-week-patterns" class="level3">
 <h3 class="anchored" data-anchor-id="day-of-week-patterns">4.2 Day-of-Week Patterns</h3>
+<p>There are clear differences that emerge when ridership is dis-aggregated by the day of the week. Figure 2 provides a joint view of intraday and weekly variation. During weekdays, Tuesday through Thursday exhibits the highest ridership during daytime hours, with clear peaks around midday and afternoon. Although Monday and Friday show slightly weaker peaks, they follow the same patterns. Meanwhile, weekends display a more even distribution with no sharp peaks indicating commute-related surges. The lowest ridership hours appear to occur overnight and during the late evening. These patterns reiterate the distinction between weekday and weekend commuter behavior, consistent with hourly plot line trends.</p>
+<p>At first glance, the summary statistics table tells us the average hourly trips during weekdays is 3,565, while during weekends it is 3,001 trips. Average hourly ridership drops approximately -15.8% on weekends, yet weekend trips are more temporally concentrated with a higher share,32.4%, during peak hours. Ultimately, this reinforces that weekday ridership sustains commute-oriented demand.</p>
 </section>
 <section id="regression-findings" class="level3">
 <h3 class="anchored" data-anchor-id="regression-findings">4.3 Regression Findings</h3>
+<section id="key-findings" class="level4">
+<h4 class="anchored" data-anchor-id="key-findings">Key Findings</h4>
+<p>Figure 3 displays regression coefficients from a linear model. Based on this plot, we can interpret that, relative to the midnight serving as a baseline, ridership increases during daytime hours, with the largest positive effects observed during commuting and midday periods. There is a sharp rise in coefficients during early morning, peak late morning, and early afternoon, and then gradually decline into the evening.</p>
+<p>The regression summary table gathers essential information with a total of 9,501 observations.</p>
+<ul>
+<li><p>Weekend hours have approximately -566 trips than weekday hours.</p></li>
+<li><p>Since the entire interval is well below zero with a 95% confidence coefficient, it indicates a robust negative weekend effect.</p></li>
+<li><p>Approximately 59.4% of variation in hourly ridership is explained by the variables of time-of-day and weekend status.</p></li>
+</ul>
+<p><strong>Consistent with the visual patterns in the hourly and heat map plots and the regression findings, these results suggest that weekday commuting activity is a primary driver of Citi Bike usage in Manhattan, while weekend demand is comparatively lower and more evenly distributed throughout the day. Altogether, these findings highlight the important role of time-based factors—particularly hour of day and weekday status—in shaping bike-share demand patterns.</strong></p>
 <hr>
+</section>
 </section>
 </section>
 <section id="discussion" class="level2">
 <h2 class="anchored" data-anchor-id="discussion">5. Discussion</h2>
+<p>This study analysis showed that Citi Bike usage in Manhattan is strongly shaped by temporal factors, time of day and day of the week, with various visualizations, summary statistics, and modeling approaches. Instead of treating time like a secondary control variable, these results indicate that both factors are fundamental drivers of bike share demand. Throughout the study period, the results remained consistent and stable, suggesting that ridership behavior is governed by more recurring daily routines rather than short-term fluctuations.</p>
+<p>Weekday usage trends closely mirror standard commuting patterns, highlighting Citi Bike’s role as a practical transportation option within Manhattan’s dense urban landscape. The indications of strong daytime usage and commuting-related peaks support the claim that riders choose this mode of transportation to rely on Citi Bike for predictable, routine travel. As we have noted earlier, weekend ridership displays a different temporal profile in comparison. It is marked by lower ridership levels and a higher concentration of activity during a limited number of daytime hours. This reveals a shift from schedule driven travel to more discretionary use.</p>
+<p>The regression findings reinforce the noted interpretations by isolating the independent effect weekend status has, while also controlling hour-of-the-day variance. The consistent negative weekend effect implies that temporal context—whether a trip occurs on a weekday or weekend—alters ridership levels even at identical hours. Furthermore, the combined use of descriptive and inferential methods enhances confidence in these conclusions by showing consistency across multiple analytic approaches.</p>
+<p>Overall, the analysis focuses on the importance of modeling time when interpreting bike share systems. If hour-of-day and time-of-day or weekend/weekday distinctions are removed from the model, it will reduce the explanatory power of models and obscure any meaningful behavioral differences. These findings carry significant implications for transportation planning, operational strategies, and demand forecasting for the urban core that Manhattan is.</p>
 <hr>
 </section>
 <section id="limitations" class="level2">
 <h2 class="anchored" data-anchor-id="limitations">6. Limitations</h2>
-<p>The focus of this study is Manhattan exclusively without generalizing the findings to other boroughs with different land-use patterns. Additionally, the purpose of each individual trip cannot be derived from the Citi Bike data, requiring us to infer commuting and leisure behavior. While aggregating trips to hourly and daily counts is necessary for visualization and modeling, it can obscure other detailed temporal dynamics that are present in individual trip records. Relying on a single year of data ultimately limits the ability to assess long-term trends or any structural changes in Citi Bike usage over time. While the research and analysis are appropriate for this study, our potential future work could examine such factors.</p>
+<p>The focus of this study is Manhattan exclusively without generalizing the findings to other boroughs with different land-use patterns. Additionally, the purpose of each individual trip cannot be derived from the Citi Bike data, requiring us to infer commuting and leisure behavior. While aggregating trips to hourly and daily counts is necessary for visualization and modeling, it can obscure other detailed temporal dynamics that are present in individual trip records. Relying on a single year of data ultimately limits the ability to assess long-term trends or any structural changes in Citi Bike usage over time.</p>
+<p>Despite these limitations, the findings provide evidence that these variables play a central role in shaping bike usage. While the research and analysis are appropriate for this study, our potential future work will incorporate other data to further expand the analysis to other boroughs.</p>
 <hr>
 </section>
 <section id="conclusion" class="level2">
