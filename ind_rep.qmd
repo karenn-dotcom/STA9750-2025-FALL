@@ -15,7 +15,7 @@ Our study addresses the overarching question:
 
 As an initial step toward addressing the broader question, this analysis examines a related sub-question:
 
-> **“How do time of day and day of the week affect Citi Bike ridership?”**
+> **How do time of day and day of the week affect Citi Bike ridership?**
 
 Temporal factors are widely recognized as strong predictors of transportation demand, especially in commuted-focused settings. By isolating Manhattan and analyzing hourly and weekly patterns, this study aims to measure the magnitude and consistency of time-based influences, highlighting their significance compared to other potential determinants.
 
@@ -320,9 +320,7 @@ ggplot(hour_wknd, aes(x = hour, y = N, color = wknd)) +
   )
 ```
 
-**Figure 1. Weekdays vs. Weekend Patterns.**
-
-Hourly ridership was compared between weekdays and weekends to distinguish commute-oriented usage from leisure-oriented travel, revealing weekday peaks and flatter weekend trends.
+**Figure 1. Weekdays vs. Weekend Patterns.** Hourly ridership was compared between weekdays and weekends to distinguish commute-oriented usage from leisure-oriented travel, revealing weekday peaks and flatter weekend trends.
 
 ```{r}
 #| label: Heatmap
@@ -349,12 +347,10 @@ ggplot(heatmap_dt, aes(x = hour, y = dow, fill = N)) +
   theme(plot.title = element_markdown())
 ```
 
-**Figure 2. Hour x Day-of-Week Heat Map.**
-
-This heat map was used to visualize hourly and weekly ridership intensity for Manhattan. Weekends display strong daytime and commute peaks, while weekends exhibit flatter, more evenly distributed ridership patterns consistent with non-commuting travel.
+**Figure 2. Hour x Day-of-Week Heat Map.** This heat map was used to visualize hourly and weekly ridership intensity for Manhattan. Weekends display strong daytime and commute peaks, while weekends exhibit flatter, more evenly distributed ridership patterns consistent with non-commuting travel.
 
 ```{r}
-#| label: Regression
+#| label: stats
 #| echo: true
 #| message: false
 #| warning: false
@@ -470,6 +466,8 @@ kable(
 
 ```
 
+**Table 1. Summary Statistics.** Highlights differences between weekend and weekday usage in Manhattan.
+
 #### Regression Modeling
 
 ```{r}
@@ -506,9 +504,7 @@ ggplot(coef_df, aes(x = estimate, y = term)) +
   theme(plot.title = element_markdown())
 ```
 
-**Figure 3. Regression Coefficients for Hour-of-day and Weekend Effects.**
-
-Coefficient estimated from a linear regression of hourly Citi Bike trip counts in Manhattan, using hour-of-day fixed effects and a weekend indicator.
+**Figure 3. Regression Coefficients for Hour-of-day and Weekend Effects.** Coefficient estimated from a linear regression of hourly Citi Bike trip counts in Manhattan, using hour-of-day fixed effects and a weekend indicator.
 
 ```{r}
 #| label: regression table
@@ -546,11 +542,11 @@ kable(
     bootstrap_options = c("striped", "hover"),
     full_width = FALSE
   )
+
+r2<- reg_summary$`R-squared`
 ```
 
-**Table 1. Summary Statistics.**
-
-Highlights differences between weekend and weekday usage in Manhattan.
+**Table 2. Regression Table Results.** Estimate the effect of weekend status hourly Citi Bike ridership in Manhattan, while controlling for hour-of-day fixed effects.
 
 ------------------------------------------------------------------------
 
@@ -558,9 +554,19 @@ Highlights differences between weekend and weekday usage in Manhattan.
 
 ### 4.1 Time-of-Day Patterns
 
+Analyzing Figure 1, across all months, weekday ridership displays a consistent bi-modal structure, with pronounced peaks during the morning and afternoon commuting periods. These peaks are most evident between 7 to 9 AM and 4 to 6 PM, reflecting commute-driven demand. In contrast, weekend ridership levels are low in magnitude and follow a smoother trend throughout the day, concentrating on the higher ridership levels during 12 to 4 PM. While overall ridership levels vary seasonally, the relative shape of weekday and weekend hourly patterns remain stable throughout the year, suggesting a consistent temporal structure.
+
 ### 4.2 Day-of-Week Patterns
 
 ### 4.3 Regression Findings
+
+Figure 3 displays regression coefficients from a linear model. Based on this plot, we can interpret that, relative to the midnight serving as a baseline, ridership increases substantially during daytime hours, with the largest positive effects observed during commuting and midday periods. There’s a sharp rise in coefficients during early morning, peak late morning and early afternoon, and then gradually decline into the evening.  
+
+The regression summary table gathers essential information with a total of `{r} format(round(reg_summary$Observations, 0), big.mark = ",")` observations.  
+
+- Weekend hours have approximately `{r} format(round(reg_summary$Estimate, 0))` trips than weekday hours.  
+- Since the entire interval is well below zero with a 95% confidence coefficient, it indicates a robust negative weekend effect. 
+- Approximately of variation `{r} paste0(format(round(r2 * 100, 1), big.mark = ","), "%")` in hourly ridership is explained by the variables of time-of-day and weekend status.  
 
 ------------------------------------------------------------------------
 
